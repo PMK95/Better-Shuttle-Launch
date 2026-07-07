@@ -31,6 +31,30 @@ namespace BetterShuttleLaunch.Settings
                 "BSL_SettingShowLaunchStatusInInspectPane".Translate(),
                 ref Settings.ShowLaunchStatusInInspectPane,
                 "BSL_SettingShowLaunchStatusInInspectPaneDesc".Translate());
+            listing.CheckboxLabeled(
+                "BSL_SettingShowTrackerWindow".Translate(),
+                ref Settings.ShowTrackerWindow,
+                "BSL_SettingShowTrackerWindowDesc".Translate());
+            listing.CheckboxLabeled(
+                "BSL_SettingShowTrackerRouteEndpointIcons".Translate(),
+                ref Settings.ShowTrackerRouteEndpointIcons,
+                "BSL_SettingShowTrackerRouteEndpointIconsDesc".Translate());
+            listing.CheckboxLabeled(
+                "BSL_SettingShowMapPassengerOverlay".Translate(),
+                ref Settings.ShowMapPassengerOverlay,
+                "BSL_SettingShowMapPassengerOverlayDesc".Translate());
+            listing.CheckboxLabeled(
+                "BSL_SettingShowTrackerHoverHelpAndHighlight".Translate(),
+                ref Settings.ShowTrackerHoverHelpAndHighlight,
+                "BSL_SettingShowTrackerHoverHelpAndHighlightDesc".Translate());
+            listing.CheckboxLabeled(
+                "BSL_SettingPauseOnShuttleArrival".Translate(),
+                ref Settings.PauseOnShuttleArrival,
+                "BSL_SettingPauseOnShuttleArrivalDesc".Translate());
+            listing.CheckboxLabeled(
+                "BSL_SettingFocusOnShuttleArrival".Translate(),
+                ref Settings.FocusOnShuttleArrival,
+                "BSL_SettingFocusOnShuttleArrivalDesc".Translate());
             listing.End();
         }
     }

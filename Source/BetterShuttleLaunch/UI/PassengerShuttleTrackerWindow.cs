@@ -51,8 +51,9 @@ namespace BetterShuttleLaunch.UI
                 BetterShuttleLaunchTextures.DrawIfAvailable(new Rect(headerRect.x + 2f, headerRect.y + 3f, 22f, 22f), BetterShuttleLaunchTextures.CommandOpenTracker, ScaleMode.ScaleToFit);
             }
 
-            TooltipHandler.TipRegion(headerRect, "BSL_ShuttleTrackerHeaderTooltip".Translate());
-            Widgets.Label(new Rect(headerRect.x + 28f, headerRect.y + 4f, headerRect.width - 94f, 24f), "BSL_ShuttleTracker".Translate());
+            Rect titleRect = new Rect(headerRect.x + 28f, headerRect.y + 4f, headerRect.width - 112f, 24f);
+            AddOptionalTooltip(titleRect, "BSL_ShuttleTrackerHeaderTooltip".Translate());
+            Widgets.Label(titleRect, "BSL_ShuttleTracker".Translate());
 
             Rect filterRect = new Rect(headerRect.xMax - 56f, headerRect.y + 2f, 26f, 26f);
             if (DrawIconToggleButton(
@@ -69,7 +70,7 @@ namespace BetterShuttleLaunch.UI
             Rect minimizeRect = new Rect(headerRect.xMax - 28f, headerRect.y + 2f, 26f, 26f);
             if (DrawTrackerButton(
                     minimizeRect,
-                    BetterShuttleLaunchMod.ActiveSettings.TrackerWindowMinimized ? "+" : "-",
+                    BetterShuttleLaunchMod.ActiveSettings.TrackerWindowMinimized ? "[]" : "-",
                     true,
                     BetterShuttleLaunchMod.ActiveSettings.TrackerWindowMinimized
                         ? "BSL_RestoreTrackerTooltip".Translate()
@@ -250,7 +251,7 @@ namespace BetterShuttleLaunch.UI
             PassengerShuttleFlightState state = GetRowState(row, out string statusText);
             Rect stateIconRect = new Rect(rect.x + 4f, rect.y + 31f, 18f, 18f);
             DrawStateIcon(stateIconRect, state, row.Shuttle);
-            TooltipHandler.TipRegion(stateIconRect, "BSL_StateIconTooltip".Translate(statusText));
+            AddOptionalTooltip(stateIconRect, "BSL_StateIconTooltip".Translate(statusText));
             DrawCompactStats(new Rect(rect.x + 28f, rect.y + 28f, 150f, 26f), row.Shuttle, row);
 
             Rect routeRect = new Rect(rect.x + 164f, rect.y + 5f, rect.width - 268f, 48f);
@@ -336,13 +337,30 @@ namespace BetterShuttleLaunch.UI
         {
             string origin = row.QueuedLaunch?.OriginLabel ?? row.TrackedFlight?.OriginLabel ?? "BSL_StatusIdle".Translate();
             string destination = row.QueuedLaunch?.DestinationLabel ?? row.TrackedFlight?.DestinationLabel ?? "BSL_StatusIdle".Translate();
-            Widgets.Label(new Rect(rect.x, rect.y, rect.width * 0.45f, 20f), origin);
-            Text.Anchor = TextAnchor.UpperRight;
-            Widgets.Label(new Rect(rect.x + rect.width * 0.55f, rect.y, rect.width * 0.45f, 20f), destination);
-            Text.Anchor = TextAnchor.UpperLeft;
-            TooltipHandler.TipRegion(rect, "BSL_RouteTooltip".Translate(origin, destination));
+            PlanetTile originTile = row.QueuedLaunch?.OriginTile ?? row.TrackedFlight?.OriginTile ?? default;
+            PlanetTile destinationTile = row.QueuedLaunch?.DestinationTile ?? row.TrackedFlight?.DestinationTile ?? default;
+            Rect lineRect;
+            if (BetterShuttleLaunchMod.ActiveSettings.ShowTrackerRouteEndpointIcons)
+            {
+                RouteEndpointInfo originEndpoint = BuildRouteEndpointInfo(originTile, origin, "BSL_RouteEndpointOrigin".Translate());
+                RouteEndpointInfo destinationEndpoint = BuildRouteEndpointInfo(destinationTile, destination, "BSL_RouteEndpointDestination".Translate());
+                Rect originRect = new Rect(rect.x, rect.y + 18f, 24f, 24f);
+                Rect destinationRect = new Rect(rect.xMax - 24f, rect.y + 18f, 24f, 24f);
+                lineRect = new Rect(originRect.xMax + 6f, rect.y + 30f, destinationRect.x - originRect.xMax - 12f, 2f);
+                DrawRouteEndpointIcon(originRect, originEndpoint);
+                DrawRouteEndpointIcon(destinationRect, destinationEndpoint);
+                AddOptionalTooltip(lineRect.ExpandedBy(4f), "BSL_RouteTooltip".Translate(origin, destination));
+            }
+            else
+            {
+                Widgets.Label(new Rect(rect.x, rect.y, rect.width * 0.45f, 20f), origin);
+                Text.Anchor = TextAnchor.UpperRight;
+                Widgets.Label(new Rect(rect.x + rect.width * 0.55f, rect.y, rect.width * 0.45f, 20f), destination);
+                Text.Anchor = TextAnchor.UpperLeft;
+                AddOptionalTooltip(rect, "BSL_RouteTooltip".Translate(origin, destination));
+                lineRect = new Rect(rect.x + 6f, rect.y + 30f, rect.width - 12f, 2f);
+            }
 
-            Rect lineRect = new Rect(rect.x + 6f, rect.y + 30f, rect.width - 12f, 2f);
             Rect railRect = lineRect.ExpandedBy(0f, 3f);
             if (!BetterShuttleLaunchTextures.DrawIfAvailable(railRect, BetterShuttleLaunchTextures.TrackerProgressRail))
             {
@@ -371,6 +389,190 @@ namespace BetterShuttleLaunch.UI
             if (state == PassengerShuttleFlightState.Arrived && Find.TickManager.TicksGame % 40 < 20)
             {
                 Widgets.DrawBox(iconRect.ExpandedBy(2f), 2);
+            }
+        }
+
+        private static RouteEndpointInfo BuildRouteEndpointInfo(PlanetTile tile, string fallbackLabel, string roleLabel)
+        {
+            WorldObject worldObject = FindBestWorldObjectAtTile(tile);
+            MapParent mapParent = worldObject as MapParent;
+            if (mapParent == null && tile.Valid && Find.WorldObjects != null)
+            {
+                mapParent = Find.WorldObjects.MapParentAt(tile);
+            }
+
+            string label = worldObject != null && !worldObject.Destroyed
+                ? worldObject.LabelCap
+                : fallbackLabel.NullOrEmpty()
+                    ? tile.Valid ? tile.ToString() : "BSL_StatusUnavailable".Translate()
+                    : fallbackLabel;
+            string kindLabel = GetRouteEndpointKindLabel(worldObject);
+            Texture2D icon = GetRouteEndpointIcon(worldObject, mapParent, out Color iconColor);
+            return new RouteEndpointInfo(tile, worldObject, mapParent, icon, iconColor, roleLabel, label, kindLabel);
+        }
+
+        private static WorldObject FindBestWorldObjectAtTile(PlanetTile tile)
+        {
+            if (!tile.Valid || Find.WorldObjects == null)
+            {
+                return null;
+            }
+
+            MapParent mapParent = Find.WorldObjects.MapParentAt(tile);
+            if (mapParent != null && !mapParent.Destroyed)
+            {
+                return mapParent;
+            }
+
+            foreach (WorldObject worldObject in Find.WorldObjects.ObjectsAt(tile))
+            {
+                if (worldObject != null && !worldObject.Destroyed)
+                {
+                    return worldObject;
+                }
+            }
+
+            return null;
+        }
+
+        private static Texture2D GetRouteEndpointIcon(WorldObject worldObject, MapParent mapParent, out Color iconColor)
+        {
+            iconColor = Color.white;
+            Texture2D icon = null;
+            if (worldObject != null && !worldObject.Destroyed)
+            {
+                iconColor = worldObject.ExpandingIconColor;
+                FactionDef factionDef = worldObject.Faction?.def;
+                if (mapParent != null)
+                {
+                    icon = worldObject.ExpandingIcon;
+                    if (icon == null && factionDef != null)
+                    {
+                        icon = factionDef.SettlementTexture;
+                    }
+
+                    if (icon == null)
+                    {
+                        icon = BetterShuttleLaunchTextures.TrackerEndpointMap;
+                    }
+                }
+                else if (factionDef != null)
+                {
+                    icon = factionDef.FactionIcon;
+                    iconColor = factionDef.DefaultColor;
+                    if (icon == null)
+                    {
+                        icon = worldObject.ExpandingIcon;
+                    }
+
+                    if (icon == null)
+                    {
+                        icon = BetterShuttleLaunchTextures.TrackerEndpointFaction;
+                    }
+                }
+                else
+                {
+                    icon = worldObject.ExpandingIcon;
+                }
+            }
+
+            if (icon == null)
+            {
+                icon = BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.TrackerEndpointEmpty, TexButton.ShowWorldFeatures);
+            }
+
+            return icon;
+        }
+
+        private static string GetRouteEndpointKindLabel(WorldObject worldObject)
+        {
+            if (worldObject == null || worldObject.Destroyed)
+            {
+                return "BSL_RouteEndpointEmpty".Translate();
+            }
+
+            if (worldObject is MapParent)
+            {
+                return "BSL_RouteEndpointMap".Translate();
+            }
+
+            if (worldObject.Faction != null)
+            {
+                return "BSL_RouteEndpointFaction".Translate(worldObject.Faction.Name);
+            }
+
+            return worldObject.def?.label?.CapitalizeFirst() ?? "BSL_RouteEndpointWorldObject".Translate();
+        }
+
+        private static void DrawRouteEndpointIcon(Rect rect, RouteEndpointInfo endpoint)
+        {
+            if (ShouldShowTrackerHoverHelpAndHighlight())
+            {
+                Widgets.DrawHighlightIfMouseover(rect);
+            }
+
+            Widgets.DrawBox(rect, 1);
+            if (endpoint.Icon != null)
+            {
+                Color oldColor = GUI.color;
+                GUI.color = endpoint.IconColor;
+                GUI.DrawTexture(rect.ContractedBy(3f), endpoint.Icon, ScaleMode.ScaleToFit);
+                GUI.color = oldColor;
+            }
+
+            AddOptionalTooltip(rect, "BSL_RouteEndpointTooltip".Translate(endpoint.RoleLabel, endpoint.Label, endpoint.KindLabel));
+            if (ShouldShowTrackerHoverHelpAndHighlight() && rect.Contains(Event.current.mousePosition))
+            {
+                HighlightRouteEndpoint(endpoint);
+            }
+
+            Event ev = Event.current;
+            if (ev.type == EventType.MouseDown && ev.button == 0 && rect.Contains(ev.mousePosition))
+            {
+                JumpToRouteEndpoint(endpoint);
+                ev.Use();
+            }
+        }
+
+        private static void HighlightRouteEndpoint(RouteEndpointInfo endpoint)
+        {
+            if (endpoint.MapParent != null && !endpoint.MapParent.Destroyed && endpoint.MapParent.HasMap && endpoint.MapParent.Map == Find.CurrentMap)
+            {
+                TargetHighlighter.Highlight(new GlobalTargetInfo(endpoint.MapParent.Map.Center, endpoint.MapParent.Map), true, true, true);
+                return;
+            }
+
+            if (endpoint.WorldObject != null && !endpoint.WorldObject.Destroyed)
+            {
+                TargetHighlighter.Highlight(new GlobalTargetInfo(endpoint.WorldObject), true, true, true);
+                return;
+            }
+
+            if (endpoint.Tile.Valid)
+            {
+                TargetHighlighter.Highlight(new GlobalTargetInfo(endpoint.Tile), true, true, true);
+            }
+        }
+
+        private static void JumpToRouteEndpoint(RouteEndpointInfo endpoint)
+        {
+            if (endpoint.MapParent != null && !endpoint.MapParent.Destroyed && endpoint.MapParent.HasMap)
+            {
+                CameraJumper.TryJump(endpoint.MapParent.Map.Center, endpoint.MapParent.Map, CameraJumper.MovementMode.Pan);
+                return;
+            }
+
+            if (endpoint.WorldObject != null && !endpoint.WorldObject.Destroyed)
+            {
+                CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(endpoint.WorldObject), CameraJumper.MovementMode.Pan);
+                return;
+            }
+
+            if (endpoint.Tile.Valid)
+            {
+                CameraJumper.TryJump(endpoint.Tile, CameraJumper.MovementMode.Pan);
+                Find.WorldSelector.ClearSelection();
+                Find.WorldSelector.SelectedTile = endpoint.Tile;
             }
         }
 
@@ -585,6 +787,19 @@ namespace BetterShuttleLaunch.UI
             GUI.color = oldColor;
         }
 
+        private static bool ShouldShowTrackerHoverHelpAndHighlight()
+        {
+            return BetterShuttleLaunchMod.ActiveSettings.ShowTrackerHoverHelpAndHighlight;
+        }
+
+        internal static void AddOptionalTooltip(Rect rect, string tooltip)
+        {
+            if (ShouldShowTrackerHoverHelpAndHighlight() && !tooltip.NullOrEmpty())
+            {
+                TooltipHandler.TipRegion(rect, tooltip);
+            }
+        }
+
         private static bool DrawTrackerButton(Rect rect, string label, bool enabled = true, string tooltip = null)
         {
             Texture2D buttonTexture = null;
@@ -628,10 +843,7 @@ namespace BetterShuttleLaunch.UI
             Widgets.Label(rect, label);
             Text.Anchor = oldAnchor;
             Text.Font = oldFont;
-            if (!tooltip.NullOrEmpty())
-            {
-                TooltipHandler.TipRegion(rect, tooltip);
-            }
+            AddOptionalTooltip(rect, tooltip);
 
             Event ev = Event.current;
             if (!enabled || ev.type != EventType.MouseDown || ev.button != 0 || !rect.Contains(ev.mousePosition))
@@ -663,7 +875,7 @@ namespace BetterShuttleLaunch.UI
                 GUI.color = oldColor;
             }
 
-            TooltipHandler.TipRegion(rect, tooltip);
+            AddOptionalTooltip(rect, tooltip);
             Event ev = Event.current;
             if (ev.type != EventType.MouseDown || ev.button != 0 || !rect.Contains(ev.mousePosition))
             {
@@ -689,8 +901,8 @@ namespace BetterShuttleLaunch.UI
         private static void AddShuttleFocusTooltipAndHighlight(Rect rect, PassengerShuttleTrackerRow row)
         {
             string label = row.Shuttle?.LabelCap ?? row.Caravan?.LabelCap ?? "BSL_StatusUnavailable".Translate();
-            TooltipHandler.TipRegion(rect, "BSL_ShuttleFocusTooltip".Translate(label));
-            if (!rect.Contains(Event.current.mousePosition))
+            AddOptionalTooltip(rect, "BSL_ShuttleFocusTooltip".Translate(label));
+            if (!ShouldShowTrackerHoverHelpAndHighlight() || !rect.Contains(Event.current.mousePosition))
             {
                 return;
             }
@@ -850,7 +1062,7 @@ namespace BetterShuttleLaunch.UI
             float clampedFill = Mathf.Clamp01(fillPercent);
             Rect fillRect = new Rect(barRect.x + 1f, barRect.yMax - 1f - (barRect.height - 2f) * clampedFill, barRect.width - 2f, (barRect.height - 2f) * clampedFill);
             DrawSolidRect(fillRect, GetStatBarColor(clampedFill));
-            TooltipHandler.TipRegion(rect, tooltip);
+            AddOptionalTooltip(rect, tooltip);
         }
 
         private static Color GetStatBarColor(float fillPercent)
@@ -919,6 +1131,30 @@ namespace BetterShuttleLaunch.UI
             return fallbackMass.ToStringMass();
         }
 
+        private readonly struct RouteEndpointInfo
+        {
+            public readonly PlanetTile Tile;
+            public readonly WorldObject WorldObject;
+            public readonly MapParent MapParent;
+            public readonly Texture2D Icon;
+            public readonly Color IconColor;
+            public readonly string RoleLabel;
+            public readonly string Label;
+            public readonly string KindLabel;
+
+            public RouteEndpointInfo(PlanetTile tile, WorldObject worldObject, MapParent mapParent, Texture2D icon, Color iconColor, string roleLabel, string label, string kindLabel)
+            {
+                Tile = tile;
+                WorldObject = worldObject;
+                MapParent = mapParent;
+                Icon = icon;
+                IconColor = iconColor;
+                RoleLabel = roleLabel;
+                Label = label;
+                KindLabel = kindLabel;
+            }
+        }
+
         private readonly struct PassengerShuttleTrackerRow
         {
             public readonly Building_PassengerShuttle Shuttle;
@@ -943,17 +1179,39 @@ namespace BetterShuttleLaunch.UI
 
         public static void Postfix()
         {
-            if (!ModsConfig.OdysseyActive || Find.CurrentMap == null || !ShouldShowForCurrentMap(Find.CurrentMap))
+            if (!ModsConfig.OdysseyActive || Find.CurrentMap == null)
             {
+                CloseTrackerWindow();
                 return;
             }
 
-            DrawLoadedPassengerShuttleMapOverlays(Find.CurrentMap);
+            BetterShuttleLaunchSettings settings = BetterShuttleLaunchMod.ActiveSettings;
+            if (settings.ShowMapPassengerOverlay)
+            {
+                DrawLoadedPassengerShuttleMapOverlays(Find.CurrentMap);
+            }
+
+            if (!settings.ShowTrackerWindow || !ShouldShowForCurrentMap(Find.CurrentMap))
+            {
+                CloseTrackerWindow();
+                return;
+            }
+
             if (trackerWindow == null || !Find.WindowStack.Windows.Contains(trackerWindow))
             {
                 trackerWindow = new PassengerShuttleTrackerWindow();
                 Find.WindowStack.Add(trackerWindow);
             }
+        }
+
+        private static void CloseTrackerWindow()
+        {
+            if (trackerWindow != null && Find.WindowStack != null && Find.WindowStack.Windows.Contains(trackerWindow))
+            {
+                trackerWindow.Close(false);
+            }
+
+            trackerWindow = null;
         }
 
         private static void DrawLoadedPassengerShuttleMapOverlays(Map map)
@@ -991,8 +1249,8 @@ namespace BetterShuttleLaunch.UI
                 Text.Anchor = oldAnchor;
                 Text.Font = oldFont;
 
-                TooltipHandler.TipRegion(iconRect.ExpandedBy(4f), "BSL_MapPassengerOverlayTooltip".Translate(shuttle.LabelCap, pawnCount.ToString()));
-                if (iconRect.ExpandedBy(4f).Contains(Event.current.mousePosition))
+                PassengerShuttleTrackerWindow.AddOptionalTooltip(iconRect.ExpandedBy(4f), "BSL_MapPassengerOverlayTooltip".Translate(shuttle.LabelCap, pawnCount.ToString()));
+                if (BetterShuttleLaunchMod.ActiveSettings.ShowTrackerHoverHelpAndHighlight && iconRect.ExpandedBy(4f).Contains(Event.current.mousePosition))
                 {
                     TargetHighlighter.Highlight(new GlobalTargetInfo(shuttle), true, true, true);
                 }

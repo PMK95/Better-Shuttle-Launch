@@ -74,4 +74,23 @@
   <BSL_SettingHideVanillaLaunchCommandDesc>Better Shuttle Launch의 통합 준비되면 발사 명령을 기본 셔틀 명령으로 사용합니다.</BSL_SettingHideVanillaLaunchCommandDesc>
   <BSL_SettingShowLaunchStatusInInspectPane>발사 상태를 정보창에 표시</BSL_SettingShowLaunchStatusInInspectPane>
   <BSL_SettingShowLaunchStatusInInspectPaneDesc>바닐라 발사 버튼의 사용 불가 사유를 왼쪽 아래 정보창에도 표시합니다.</BSL_SettingShowLaunchStatusInInspectPaneDesc>
+  <BSL_SettingShowTrackerWindow>왕복선 관제 UI 표시</BSL_SettingShowTrackerWindow>
+  <BSL_SettingShowTrackerWindowDesc>현재 맵과 플레이어 왕복선 상태를 보여주는 관제창을 표시합니다.</BSL_SettingShowTrackerWindowDesc>
+  <BSL_SettingShowTrackerRouteEndpointIcons>관제 UI 경로 아이콘 표시</BSL_SettingShowTrackerRouteEndpointIcons>
+  <BSL_SettingShowTrackerRouteEndpointIconsDesc>진행바 양끝에 출발지와 도착지를 클릭 가능한 아이콘으로 표시합니다.</BSL_SettingShowTrackerRouteEndpointIconsDesc>
+  <BSL_SettingShowMapPassengerOverlay>지도 위 탑승자 아이콘 표시</BSL_SettingShowMapPassengerOverlay>
+  <BSL_SettingShowMapPassengerOverlayDesc>맵에 있는 왕복선에 탑승자가 있으면 작은 인원 아이콘을 표시합니다.</BSL_SettingShowMapPassengerOverlayDesc>
+  <BSL_SettingShowTrackerHoverHelpAndHighlight>관제 UI 마우스오버 도움말/강조 표시</BSL_SettingShowTrackerHoverHelpAndHighlight>
+  <BSL_SettingShowTrackerHoverHelpAndHighlightDesc>관제창 요소에 마우스를 올렸을 때 설명 툴팁과 대상 강조를 표시합니다.</BSL_SettingShowTrackerHoverHelpAndHighlightDesc>
+  <BSL_SettingPauseOnShuttleArrival>왕복선 도착 시 정지</BSL_SettingPauseOnShuttleArrival>
+  <BSL_SettingPauseOnShuttleArrivalDesc>예약 발사 왕복선이 목적지에 도착하는 순간 게임을 일시정지합니다.</BSL_SettingPauseOnShuttleArrivalDesc>
+  <BSL_SettingFocusOnShuttleArrival>왕복선 도착 시 포커스 이동</BSL_SettingFocusOnShuttleArrival>
+  <BSL_SettingFocusOnShuttleArrivalDesc>예약 발사 왕복선이 목적지에 도착하면 해당 왕복선, 목적지 맵, 월드 타일 순서로 화면을 이동합니다.</BSL_SettingFocusOnShuttleArrivalDesc>
+  <BSL_RouteEndpointOrigin>출발지</BSL_RouteEndpointOrigin>
+  <BSL_RouteEndpointDestination>도착지</BSL_RouteEndpointDestination>
+  <BSL_RouteEndpointMap>맵 대상</BSL_RouteEndpointMap>
+  <BSL_RouteEndpointFaction>세력 대상: {0}</BSL_RouteEndpointFaction>
+  <BSL_RouteEndpointEmpty>빈 월드 타일</BSL_RouteEndpointEmpty>
+  <BSL_RouteEndpointWorldObject>월드 대상</BSL_RouteEndpointWorldObject>
+  <BSL_RouteEndpointTooltip>{0}: {1}\n유형: {2}\n클릭하면 해당 위치로 이동합니다.</BSL_RouteEndpointTooltip>
 </LanguageData>

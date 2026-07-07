@@ -52,6 +52,9 @@ Better Shuttle Launch/
 | `Progress_Fill.png` | 512 x 16 | 진행률만큼 가변 | 긴 막대 | 이동 경로 진행 채움 |
 | `Shuttle_Marker.png` | 64 x 64 | 약 28 x 28 | 1:1 | 진행바 위 왕복선 마커 프레임 |
 | `Filter_Local.png` | 64 x 64 | 26 x 26 | 1:1 | 현재 맵 왕복선만 보기 토글 |
+| `Endpoint_Empty.png` | 64 x 64 | 24 x 24 | 1:1 | 출발지/도착지가 빈 월드 타일일 때 쓰는 fallback 아이콘 |
+| `Endpoint_Map.png` | 64 x 64 | 24 x 24 | 1:1 | 맵 대상 아이콘이 없을 때 쓰는 fallback 아이콘 |
+| `Endpoint_Faction.png` | 64 x 64 | 24 x 24 | 1:1 | 세력 대상 아이콘이 없을 때 쓰는 fallback 아이콘 |
 | `Button_Normal.png` | 160 x 48 | 80 x 24 또는 26 x 26 | 10:3 또는 1:1 대응 | 기본 버튼 |
 | `Button_Hover.png` | 160 x 48 | 80 x 24 또는 26 x 26 | 10:3 또는 1:1 대응 | 마우스 오버 버튼 |
 | `Button_Disabled.png` | 160 x 48 | 80 x 24 또는 26 x 26 | 10:3 또는 1:1 대응 | 비활성 버튼 |
@@ -59,6 +62,7 @@ Better Shuttle Launch/
 주의할 점:
 - `Button_*`은 텍스트가 중앙에 올라간다. 텍스트 대비가 충분해야 한다.
 - 최소화 버튼도 같은 버튼 텍스처를 사용하지만 26 x 26 정사각형으로 그려진다. 버튼 이미지를 가로형으로 만들 경우 좌우 끝 장식이 뭉개질 수 있다.
+- `Endpoint_*`는 관제 진행바 양끝에 표시된다. 실제 정착지/세력 아이콘이 있으면 그 아이콘을 우선 사용하고, 대상 아이콘이 없을 때만 fallback으로 사용된다.
 - `Panel_Background`, `Panel_Header`, `Row_Background`는 stretch 방식이라 정교한 모서리 장식보다 단순한 질감과 얇은 경계선이 안정적이다.
 
 ## 상태 아이콘
@@ -99,7 +103,7 @@ Better Shuttle Launch/
 
 1. `BSL_LaunchWhenReady.png`, `BSL_CancelLaunch.png`
 2. `Panel_Background.png`, `Panel_Header.png`, `Row_Background.png`
-3. `Progress_Rail.png`, `Progress_Fill.png`, `Shuttle_Marker.png`
+3. `Progress_Rail.png`, `Progress_Fill.png`, `Shuttle_Marker.png`, `Endpoint_Empty.png`
 4. `Status/*.png`
 5. `Badges/*.png`
 6. `Button_Normal.png`, `Button_Hover.png`, `Button_Disabled.png`

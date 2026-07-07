@@ -22,6 +22,9 @@ namespace BetterShuttleLaunch.UI
         public static readonly Texture2D TrackerButtonHover = Load("UI/Tracker/Button_Hover");
         public static readonly Texture2D TrackerButtonDisabled = Load("UI/Tracker/Button_Disabled");
         public static readonly Texture2D TrackerFilterLocal = Load("UI/Tracker/Filter_Local");
+        public static readonly Texture2D TrackerEndpointEmpty = Load("UI/Tracker/Endpoint_Empty");
+        public static readonly Texture2D TrackerEndpointMap = Load("UI/Tracker/Endpoint_Map");
+        public static readonly Texture2D TrackerEndpointFaction = Load("UI/Tracker/Endpoint_Faction");
 
         public static readonly Texture2D StatusIdle = Load("UI/Status/Idle");
         public static readonly Texture2D StatusLoading = Load("UI/Status/Loading");

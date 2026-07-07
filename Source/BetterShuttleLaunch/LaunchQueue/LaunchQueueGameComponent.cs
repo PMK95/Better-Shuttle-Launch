@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using BetterShuttleLaunch.ReturnHome;
+using BetterShuttleLaunch.Settings;
 using BetterShuttleLaunch.Shuttles;
 using RimWorld;
 using RimWorld.Planet;
@@ -385,6 +386,7 @@ namespace BetterShuttleLaunch.LaunchQueue
                     trackedFlight.State = PassengerShuttleFlightState.Arrived;
                     trackedFlight.StatusText = "BSL_StatusArrived".Translate();
                     trackedFlight.ArrivedTick = Find.TickManager.TicksGame;
+                    ApplyArrivalOptionsOnce(trackedFlight);
                     continue;
                 }
 
@@ -404,6 +406,72 @@ namespace BetterShuttleLaunch.LaunchQueue
                    && trackedFlight.Shuttle.Spawned
                    && mapParent != null
                    && mapParent.Tile == trackedFlight.DestinationTile;
+        }
+
+        private static void ApplyArrivalOptionsOnce(TrackedPassengerShuttleFlight trackedFlight)
+        {
+            BetterShuttleLaunchSettings settings = BetterShuttleLaunchMod.ActiveSettings;
+            if (settings.PauseOnShuttleArrival)
+            {
+                Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
+            }
+
+            if (settings.FocusOnShuttleArrival)
+            {
+                JumpToArrivedShuttleOrDestination(trackedFlight);
+            }
+        }
+
+        private static void JumpToArrivedShuttleOrDestination(TrackedPassengerShuttleFlight trackedFlight)
+        {
+            Building_PassengerShuttle shuttle = trackedFlight?.Shuttle;
+            if (shuttle != null && !shuttle.Destroyed && shuttle.Spawned)
+            {
+                CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(shuttle), CameraJumper.MovementMode.Pan);
+                return;
+            }
+
+            PlanetTile destinationTile = trackedFlight?.DestinationTile ?? default;
+            if (!destinationTile.Valid || Find.WorldObjects == null)
+            {
+                return;
+            }
+
+            MapParent mapParent = Find.WorldObjects.MapParentAt(destinationTile);
+            if (mapParent != null && !mapParent.Destroyed && mapParent.HasMap)
+            {
+                CameraJumper.TryJump(mapParent.Map.Center, mapParent.Map, CameraJumper.MovementMode.Pan);
+                return;
+            }
+
+            WorldObject worldObject = FindWorldObjectAtTile(destinationTile);
+            if (worldObject != null && !worldObject.Destroyed)
+            {
+                CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(worldObject), CameraJumper.MovementMode.Pan);
+                return;
+            }
+
+            CameraJumper.TryJump(destinationTile, CameraJumper.MovementMode.Pan);
+            Find.WorldSelector.ClearSelection();
+            Find.WorldSelector.SelectedTile = destinationTile;
+        }
+
+        private static WorldObject FindWorldObjectAtTile(PlanetTile tile)
+        {
+            if (!tile.Valid || Find.WorldObjects == null)
+            {
+                return null;
+            }
+
+            foreach (WorldObject worldObject in Find.WorldObjects.ObjectsAt(tile))
+            {
+                if (worldObject != null && !worldObject.Destroyed)
+                {
+                    return worldObject;
+                }
+            }
+
+            return null;
         }
 
         private void RemoveInvalidDepartureLocations()

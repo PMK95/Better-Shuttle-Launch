@@ -74,4 +74,23 @@
   <BSL_SettingHideVanillaLaunchCommandDesc>Uses Better Shuttle Launch's unified Launch When Ready command as the main shuttle command.</BSL_SettingHideVanillaLaunchCommandDesc>
   <BSL_SettingShowLaunchStatusInInspectPane>Show launch status in the inspect pane</BSL_SettingShowLaunchStatusInInspectPane>
   <BSL_SettingShowLaunchStatusInInspectPaneDesc>Shows the same vanilla launch-blocking reason in the lower-left inspect pane.</BSL_SettingShowLaunchStatusInInspectPaneDesc>
+  <BSL_SettingShowTrackerWindow>Show shuttle control UI</BSL_SettingShowTrackerWindow>
+  <BSL_SettingShowTrackerWindowDesc>Shows the control window for the current map and player passenger shuttles.</BSL_SettingShowTrackerWindowDesc>
+  <BSL_SettingShowTrackerRouteEndpointIcons>Show route endpoint icons</BSL_SettingShowTrackerRouteEndpointIcons>
+  <BSL_SettingShowTrackerRouteEndpointIconsDesc>Shows the origin and destination at both ends of the tracker route as clickable icons.</BSL_SettingShowTrackerRouteEndpointIconsDesc>
+  <BSL_SettingShowMapPassengerOverlay>Show passenger icons on the map</BSL_SettingShowMapPassengerOverlay>
+  <BSL_SettingShowMapPassengerOverlayDesc>Shows a small passenger icon over map shuttles that have loaded pawns.</BSL_SettingShowMapPassengerOverlayDesc>
+  <BSL_SettingShowTrackerHoverHelpAndHighlight>Show tracker hover help and highlights</BSL_SettingShowTrackerHoverHelpAndHighlight>
+  <BSL_SettingShowTrackerHoverHelpAndHighlightDesc>Shows tooltips and target highlights when hovering over tracker UI elements.</BSL_SettingShowTrackerHoverHelpAndHighlightDesc>
+  <BSL_SettingPauseOnShuttleArrival>Pause when a shuttle arrives</BSL_SettingPauseOnShuttleArrival>
+  <BSL_SettingPauseOnShuttleArrivalDesc>Pauses the game once when a scheduled shuttle reaches its destination.</BSL_SettingPauseOnShuttleArrivalDesc>
+  <BSL_SettingFocusOnShuttleArrival>Focus when a shuttle arrives</BSL_SettingFocusOnShuttleArrival>
+  <BSL_SettingFocusOnShuttleArrivalDesc>Jumps the camera to the arrived shuttle, destination map, or world tile when a scheduled shuttle arrives.</BSL_SettingFocusOnShuttleArrivalDesc>
+  <BSL_RouteEndpointOrigin>Origin</BSL_RouteEndpointOrigin>
+  <BSL_RouteEndpointDestination>Destination</BSL_RouteEndpointDestination>
+  <BSL_RouteEndpointMap>Map target</BSL_RouteEndpointMap>
+  <BSL_RouteEndpointFaction>Faction target: {0}</BSL_RouteEndpointFaction>
+  <BSL_RouteEndpointEmpty>Empty world tile</BSL_RouteEndpointEmpty>
+  <BSL_RouteEndpointWorldObject>World target</BSL_RouteEndpointWorldObject>
+  <BSL_RouteEndpointTooltip>{0}: {1}\nType: {2}\nClick to jump to this location.</BSL_RouteEndpointTooltip>
 </LanguageData>
