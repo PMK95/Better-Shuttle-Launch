@@ -26,7 +26,7 @@ namespace BetterShuttleLaunch.UI
         public override void DoWindowContents(Rect inRect)
         {
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(0f, 0f, inRect.width, 35f), "BSL_SelectHome".Translate());
+            Widgets.Label(new Rect(0f, 0f, inRect.width, 35f), "BSL_SelectSettlement".Translate());
             Text.Font = GameFont.Small;
 
             Rect outRect = new Rect(0f, 45f, inRect.width, inRect.height - 45f);

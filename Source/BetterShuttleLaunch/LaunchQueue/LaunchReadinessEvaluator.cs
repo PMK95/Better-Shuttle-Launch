@@ -73,7 +73,13 @@ namespace BetterShuttleLaunch.LaunchQueue
         {
             Caravan caravan = queuedLaunch.Caravan;
             Building_PassengerShuttle shuttle = queuedLaunch.Shuttle;
-            if (caravan == null || caravan.Destroyed || caravan.Faction != Faction.OfPlayer || caravan.Shuttle == null || caravan.Shuttle != shuttle)
+            if (caravan == null
+                || caravan.Destroyed
+                || caravan.Faction != Faction.OfPlayer
+                || caravan.Shuttle == null
+                || caravan.Shuttle != shuttle
+                || shuttle?.LaunchableComp == null
+                || shuttle.TransporterComp == null)
             {
                 return Cancel("BSL_ShuttleUnavailable".Translate());
             }
@@ -95,6 +101,12 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             int distance = Find.WorldGrid.TraversalDistanceBetween(caravan.Tile, queuedLaunch.DestinationTile, true, int.MaxValue, true);
+            int maxLaunchDistance = shuttle.LaunchableComp.MaxLaunchDistanceEver(queuedLaunch.DestinationTile.Layer);
+            if (maxLaunchDistance >= 0 && distance > maxLaunchDistance)
+            {
+                return Cancel("TransportPodDestinationBeyondMaximumRange".Translate());
+            }
+
             if (distance > shuttle.LaunchableComp.MaxLaunchDistanceAtFuelLevel(shuttle.FuelLevel, queuedLaunch.DestinationTile.Layer))
             {
                 return Wait("TransportPodNotEnoughFuel".Translate());

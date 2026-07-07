@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
-using BetterShuttleLaunch.ReturnHome;
+using BetterShuttleLaunch.Commands;
+using BetterShuttleLaunch.Settings;
 using BetterShuttleLaunch.Shuttles;
 using HarmonyLib;
 using RimWorld;
@@ -19,15 +20,11 @@ namespace BetterShuttleLaunch.LaunchQueue
         private static IEnumerable<Gizmo> AppendPassengerShuttleGizmos(CompLaunchable launchable, IEnumerable<Gizmo> originalGizmos)
         {
             Building_PassengerShuttle shuttle = launchable.parent as Building_PassengerShuttle;
-            bool replaceVanillaLaunchWithQueuedLaunch = ModsConfig.OdysseyActive
-                                                         && PassengerShuttleFinder.IsSupportedPassengerShuttle(shuttle)
-                                                         && shuttle.TransporterComp.LoadingInProgressOrReadyToLaunch
-                                                         && !launchable.CanLaunch().Accepted
-                                                         && PassengerShuttleLaunchQueueCommandUtility.CanQueueLaunchWhenReady(shuttle, out _);
+            bool isPassengerShuttle = ModsConfig.OdysseyActive && PassengerShuttleFinder.IsSupportedPassengerShuttle(shuttle);
 
             foreach (Gizmo gizmo in originalGizmos)
             {
-                if (replaceVanillaLaunchWithQueuedLaunch && IsVanillaLaunchCommand(gizmo))
+                if (isPassengerShuttle && BetterShuttleLaunchMod.ActiveSettings.HideVanillaLaunchCommand && IsVanillaLaunchCommand(gizmo))
                 {
                     continue;
                 }
@@ -35,22 +32,12 @@ namespace BetterShuttleLaunch.LaunchQueue
                 yield return gizmo;
             }
 
-            if (!ModsConfig.OdysseyActive || !PassengerShuttleFinder.IsSupportedPassengerShuttle(shuttle))
+            if (!isPassengerShuttle)
             {
                 yield break;
             }
 
-            yield return ReturnHomeCommandUtility.CreateReturnHomeCommand(shuttle);
-
-            LaunchQueueGameComponent queue = LaunchQueueGameComponent.Current;
-            if (queue != null && queue.IsQueued(shuttle))
-            {
-                yield return PassengerShuttleLaunchQueueCommandUtility.CreateCancelQueuedLaunchCommand(shuttle);
-            }
-            else
-            {
-                yield return PassengerShuttleLaunchQueueCommandUtility.CreateLaunchWhenReadyCommand(shuttle);
-            }
+            yield return PassengerShuttleLaunchCommandFactory.CreateForMapShuttle(shuttle);
         }
 
         private static bool IsVanillaLaunchCommand(Gizmo gizmo)
@@ -65,27 +52,55 @@ namespace BetterShuttleLaunch.LaunchQueue
         public static void Postfix(CompLaunchable __instance, ref string __result)
         {
             Building_PassengerShuttle shuttle = __instance.parent as Building_PassengerShuttle;
-            QueuedPassengerShuttleLaunch queuedLaunch = LaunchQueueGameComponent.Current?.FindQueuedLaunch(shuttle);
-            if (queuedLaunch == null)
+            if (!ModsConfig.OdysseyActive || !PassengerShuttleFinder.IsSupportedPassengerShuttle(shuttle))
             {
                 return;
             }
 
-            LaunchReadinessResult readiness = LaunchReadinessEvaluator.EvaluateQueuedPassengerShuttleLaunch(queuedLaunch);
+            QueuedPassengerShuttleLaunch queuedLaunch = LaunchQueueGameComponent.Current?.FindQueuedLaunch(shuttle);
+            bool hasQueuedLaunch = queuedLaunch != null;
+            LaunchReadinessResult readiness = hasQueuedLaunch ? LaunchReadinessEvaluator.EvaluateQueuedPassengerShuttleLaunch(queuedLaunch) : default;
             StringBuilder builder = new StringBuilder();
             if (!__result.NullOrEmpty())
             {
-                builder.AppendLine(__result);
+                builder.Append(__result);
             }
 
-            builder.Append("BSL_LaunchQueued".Translate());
-            if (!readiness.StatusText.NullOrEmpty())
+            if (BetterShuttleLaunchMod.ActiveSettings.ShowLaunchStatusInInspectPane
+                && __instance.CanLaunch() is AcceptanceReport canLaunch
+                && !canLaunch.Accepted
+                && !canLaunch.Reason.NullOrEmpty())
             {
-                builder.Append(": ");
-                builder.Append(readiness.StatusText);
+                AppendUniqueLine(builder, "BSL_LaunchStatusUnavailable".Translate("DisabledCommand".Translate(), canLaunch.Reason), canLaunch.Reason);
+            }
+
+            if (hasQueuedLaunch)
+            {
+                string queuedText = "BSL_LaunchQueued".Translate();
+                if (!readiness.StatusText.NullOrEmpty())
+                {
+                    queuedText += ": " + readiness.StatusText;
+                }
+
+                AppendUniqueLine(builder, queuedText, queuedText);
             }
 
             __result = builder.ToString();
+        }
+
+        private static void AppendUniqueLine(StringBuilder builder, string line, string duplicateCheckText)
+        {
+            if (line.NullOrEmpty() || (!duplicateCheckText.NullOrEmpty() && builder.ToString().Contains(duplicateCheckText)))
+            {
+                return;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.AppendLine();
+            }
+
+            builder.Append(line);
         }
     }
 }

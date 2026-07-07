@@ -24,13 +24,13 @@ namespace BetterShuttleLaunch.Settings
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(inRect);
             listing.CheckboxLabeled(
-                "BSL_SettingHideSettlementJumpWhenSingleColony".Translate(),
-                ref Settings.HideSettlementJumpCommandWhenSingleColony,
-                "BSL_SettingHideSettlementJumpWhenSingleColonyDesc".Translate());
+                "BSL_SettingHideVanillaLaunchCommand".Translate(),
+                ref Settings.HideVanillaLaunchCommand,
+                "BSL_SettingHideVanillaLaunchCommandDesc".Translate());
             listing.CheckboxLabeled(
-                "BSL_SettingAutoLandReturnHomeAtLastDepartureCell".Translate(),
-                ref Settings.AutoLandReturnHomeAtLastDepartureCell,
-                "BSL_SettingAutoLandReturnHomeAtLastDepartureCellDesc".Translate());
+                "BSL_SettingShowLaunchStatusInInspectPane".Translate(),
+                ref Settings.ShowLaunchStatusInInspectPane,
+                "BSL_SettingShowLaunchStatusInInspectPaneDesc".Translate());
             listing.End();
         }
     }

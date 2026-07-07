@@ -82,6 +82,20 @@ namespace BetterShuttleLaunch.Shuttles
                 () => StartChoosingDestination(shuttle, destinationChosen)));
         }
 
+        public static void OpenLoadDialogThenRunAction(Building_PassengerShuttle shuttle, Action afterAccepted)
+        {
+            if (!TryGetLaunchParts(shuttle, out _, out CompTransporter transporter, out string failReason))
+            {
+                Messages.Message(failReason, MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            Find.WindowStack.Add(new Dialog_LoadTransportersThenRunAction(
+                transporter.Map,
+                new List<CompTransporter> { transporter },
+                afterAccepted));
+        }
+
         public static void StartChoosingDestination(Building_PassengerShuttle shuttle, Action<PlanetTile, TransportersArrivalAction> destinationChosen)
         {
             if (!TryGetLaunchParts(shuttle, out CompLaunchable launchable, out _, out string failReason))
@@ -121,6 +135,31 @@ namespace BetterShuttleLaunch.Shuttles
                 out failReason);
         }
 
+        public static bool CanChooseSpecificLandingCell(
+            Building_PassengerShuttle shuttle,
+            MapParent destination,
+            IntVec3 cell,
+            Rot4 rotation,
+            out string failReason)
+        {
+            failReason = null;
+            if (!TryGetLaunchParts(shuttle, out CompLaunchable launchable, out CompTransporter transporter, out failReason))
+            {
+                return false;
+            }
+
+            return CanUseSpecificLandingCell(
+                shuttle.Tile,
+                transporter.TransportersInGroup(shuttle.Map),
+                launchable,
+                shuttle.def,
+                destination,
+                cell,
+                rotation,
+                null,
+                out failReason);
+        }
+
         public static bool TryChooseSpecificLandingCellFromCaravan(
             Caravan caravan,
             MapParent destination,
@@ -148,6 +187,35 @@ namespace BetterShuttleLaunch.Shuttles
                 cell,
                 rotation,
                 (tile, action) => CaravanShuttleUtility.LaunchShuttle(caravan, tile, action),
+                shuttle.FuelLevel,
+                out failReason);
+        }
+
+        public static bool CanChooseSpecificLandingCellFromCaravan(
+            Caravan caravan,
+            MapParent destination,
+            IntVec3 cell,
+            Rot4 rotation,
+            out string failReason)
+        {
+            failReason = null;
+            Building_PassengerShuttle shuttle = caravan?.Shuttle;
+            CompLaunchable launchable = shuttle?.LaunchableComp;
+            CompTransporter transporter = shuttle?.TransporterComp;
+            if (caravan == null || shuttle == null || launchable == null || transporter == null)
+            {
+                failReason = "BSL_ShuttleUnavailable".Translate();
+                return false;
+            }
+
+            return CanUseSpecificLandingCell(
+                caravan.Tile,
+                new List<CompTransporter> { transporter },
+                launchable,
+                shuttle.def,
+                destination,
+                cell,
+                rotation,
                 shuttle.FuelLevel,
                 out failReason);
         }
@@ -180,6 +248,108 @@ namespace BetterShuttleLaunch.Shuttles
                 launchable.MaxLaunchDistanceEver(target.Tile.Layer),
                 launchAction,
                 launchable);
+        }
+
+        public static bool TryChooseSpecificWorldTargetFromCaravan(Caravan caravan, GlobalTargetInfo target, Action<PlanetTile, TransportersArrivalAction> destinationChosen)
+        {
+            Building_PassengerShuttle shuttle = caravan?.Shuttle;
+            CompLaunchable launchable = shuttle?.LaunchableComp;
+            CompTransporter transporter = shuttle?.TransporterComp;
+            if (caravan == null || shuttle == null || launchable == null || transporter == null)
+            {
+                Messages.Message("BSL_ShuttleUnavailable".Translate(), MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+
+            if (!target.IsValid || !target.Tile.Valid)
+            {
+                Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+
+            return CompLaunchable.ChoseWorldTarget(
+                target,
+                caravan.Tile,
+                new List<CompTransporter> { transporter },
+                launchable.MaxLaunchDistanceEver(target.Tile.Layer),
+                destinationChosen,
+                launchable,
+                shuttle.FuelLevel);
+        }
+
+        public static bool TryCreateSpecificLandingActionForQueuedLaunch(
+            Building_PassengerShuttle shuttle,
+            MapParent destination,
+            IntVec3 cell,
+            Rot4 rotation,
+            out PlanetTile destinationTile,
+            out TransportersArrivalAction arrivalAction,
+            out string failReason)
+        {
+            destinationTile = default;
+            arrivalAction = null;
+            failReason = null;
+            if (!TryGetLaunchParts(shuttle, out CompLaunchable launchable, out CompTransporter transporter, out failReason))
+            {
+                return false;
+            }
+
+            List<CompTransporter> transportersInGroup = transporter.TransportersInGroup(shuttle.Map);
+            if (!CanCreateSpecificLandingActionForQueuedLaunch(
+                    shuttle.Tile,
+                    transportersInGroup,
+                    launchable,
+                    shuttle.def,
+                    destination,
+                    cell,
+                    rotation,
+                    out failReason))
+            {
+                return false;
+            }
+
+            destinationTile = destination.Tile;
+            arrivalAction = new TransportersArrivalAction_LandInSpecificCell(destination, cell, rotation, true);
+            return true;
+        }
+
+        public static bool TryCreateSpecificLandingActionForCaravanQueuedLaunch(
+            Caravan caravan,
+            MapParent destination,
+            IntVec3 cell,
+            Rot4 rotation,
+            out PlanetTile destinationTile,
+            out TransportersArrivalAction arrivalAction,
+            out string failReason)
+        {
+            destinationTile = default;
+            arrivalAction = null;
+            failReason = null;
+            Building_PassengerShuttle shuttle = caravan?.Shuttle;
+            CompLaunchable launchable = shuttle?.LaunchableComp;
+            CompTransporter transporter = shuttle?.TransporterComp;
+            if (caravan == null || shuttle == null || launchable == null || transporter == null)
+            {
+                failReason = "BSL_ShuttleUnavailable".Translate();
+                return false;
+            }
+
+            if (!CanCreateSpecificLandingActionForQueuedLaunch(
+                    caravan.Tile,
+                    new List<CompTransporter> { transporter },
+                    launchable,
+                    shuttle.def,
+                    destination,
+                    cell,
+                    rotation,
+                    out failReason))
+            {
+                return false;
+            }
+
+            destinationTile = destination.Tile;
+            arrivalAction = new TransportersArrivalAction_LandInSpecificCell(destination, cell, rotation, true);
+            return true;
         }
 
         public static bool TryLaunchImmediately(Building_PassengerShuttle shuttle, PlanetTile destinationTile, TransportersArrivalAction arrivalAction, out string failReason)
@@ -264,6 +434,35 @@ namespace BetterShuttleLaunch.Shuttles
             float? overrideFuelLevel,
             out string failReason)
         {
+            if (!CanUseSpecificLandingCell(
+                    originTile,
+                    transporters,
+                    launchable,
+                    shuttleDef,
+                    destination,
+                    cell,
+                    rotation,
+                    overrideFuelLevel,
+                    out failReason))
+            {
+                return false;
+            }
+
+            launchAction(destination.Tile, new TransportersArrivalAction_LandInSpecificCell(destination, cell, rotation, true));
+            return true;
+        }
+
+        private static bool CanUseSpecificLandingCell(
+            PlanetTile originTile,
+            List<CompTransporter> transporters,
+            CompLaunchable launchable,
+            ThingDef shuttleDef,
+            MapParent destination,
+            IntVec3 cell,
+            Rot4 rotation,
+            float? overrideFuelLevel,
+            out string failReason)
+        {
             failReason = null;
             if (transporters == null || launchable == null || destination == null || !destination.Spawned || !destination.HasMap)
             {
@@ -308,13 +507,47 @@ namespace BetterShuttleLaunch.Shuttles
 
             FloatMenuAcceptanceReport stillValid = new TransportersArrivalAction_LandInSpecificCell(destination, cell, rotation, true)
                 .StillValid(transporters, destination.Tile);
-            if (!stillValid.Accepted)
+            if (stillValid.Accepted)
             {
-                failReason = stillValid.FailReason.NullOrEmpty() ? "BSL_DestinationInvalid".Translate() : stillValid.FailReason;
+                return true;
+            }
+
+            failReason = stillValid.FailReason.NullOrEmpty() ? "BSL_DestinationInvalid".Translate() : stillValid.FailReason;
+            return false;
+        }
+
+        private static bool CanCreateSpecificLandingActionForQueuedLaunch(
+            PlanetTile originTile,
+            List<CompTransporter> transporters,
+            CompLaunchable launchable,
+            ThingDef shuttleDef,
+            MapParent destination,
+            IntVec3 cell,
+            Rot4 rotation,
+            out string failReason)
+        {
+            failReason = null;
+            if (transporters == null || launchable == null || destination == null || !destination.Spawned || !destination.HasMap)
+            {
+                failReason = "BSL_DestinationInvalid".Translate();
                 return false;
             }
 
-            launchAction(destination.Tile, new TransportersArrivalAction_LandInSpecificCell(destination, cell, rotation, true));
+            AcceptanceReport canLand = RoyalTitlePermitWorker_CallShuttle.ShuttleCanLandHere(new LocalTargetInfo(cell), destination.Map, shuttleDef, rotation);
+            if (!canLand.Accepted)
+            {
+                failReason = canLand.Reason;
+                return false;
+            }
+
+            int maxLaunchDistance = launchable.MaxLaunchDistanceEver(destination.Tile.Layer);
+            int distance = Find.WorldGrid.TraversalDistanceBetween(originTile, destination.Tile, true, int.MaxValue, true);
+            if (maxLaunchDistance >= 0 && distance > maxLaunchDistance)
+            {
+                failReason = "TransportPodDestinationBeyondMaximumRange".Translate();
+                return false;
+            }
+
             return true;
         }
     }

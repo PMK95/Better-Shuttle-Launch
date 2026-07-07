@@ -41,11 +41,11 @@ namespace BetterShuttleLaunch.UI
             Text.Font = GameFont.Small;
 
             Rect outRect = new Rect(0f, 45f, inRect.width, inRect.height - 45f);
-            Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, shuttles.Count * 42f);
+            Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, shuttles.Count * 64f);
             Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
             for (int i = 0; i < shuttles.Count; i++)
             {
-                DrawShuttleRow(new Rect(0f, i * 42f, viewRect.width, 36f), shuttles[i]);
+                DrawShuttleRow(new Rect(0f, i * 64f, viewRect.width, 58f), shuttles[i]);
             }
 
             Widgets.EndScrollView();
@@ -59,10 +59,11 @@ namespace BetterShuttleLaunch.UI
             bool canSelect = disabledReason.NullOrEmpty();
 
             Widgets.DrawHighlightIfMouseover(rect);
-            Widgets.Label(new Rect(rect.x, rect.y + 6f, rect.width - 130f, 24f), shuttle?.LabelCap ?? "BSL_StatusUnavailable".Translate());
-            Widgets.Label(new Rect(rect.x + rect.width - 245f, rect.y + 6f, 120f, 24f), status);
+            PassengerShuttleIconDrawer.Draw(new Rect(rect.x + 4f, rect.y + 5f, 48f, 48f), shuttle);
+            Widgets.Label(new Rect(rect.x + 62f, rect.y + 8f, rect.width - 300f, 24f), shuttle?.LabelCap ?? "BSL_StatusUnavailable".Translate());
+            Widgets.Label(new Rect(rect.x + 62f, rect.y + 32f, rect.width - 300f, 22f), status);
 
-            Rect buttonRect = new Rect(rect.x + rect.width - 110f, rect.y + 4f, 100f, 28f);
+            Rect buttonRect = new Rect(rect.x + rect.width - 110f, rect.y + 15f, 100f, 28f);
             if (canSelect)
             {
                 if (Widgets.ButtonText(buttonRect, "BSL_Select".Translate()))

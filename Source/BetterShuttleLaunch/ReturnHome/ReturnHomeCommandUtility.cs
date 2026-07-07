@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using BetterShuttleLaunch.LaunchQueue;
-using BetterShuttleLaunch.Settings;
 using BetterShuttleLaunch.Shuttles;
-using BetterShuttleLaunch.UI;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
@@ -11,34 +9,14 @@ namespace BetterShuttleLaunch.ReturnHome
 {
     public static class ReturnHomeCommandUtility
     {
-        public static Gizmo CreateReturnHomeCommand(Building_PassengerShuttle shuttle)
-        {
-            Command_Action command = new Command_Action
-            {
-                defaultLabel = "BSL_ReturnHome".Translate(),
-                defaultDesc = "BSL_ReturnHomeDesc".Translate(),
-                icon = CompLaunchable.LaunchCommandTex,
-                action = () => StartReturnHome(shuttle)
-            };
-
-            if (!PassengerShuttleLaunchBridge.TryGetLaunchParts(shuttle, out CompLaunchable launchable, out _, out string failReason))
-            {
-                command.Disable(failReason);
-                return command;
-            }
-
-            AcceptanceReport canLaunch = launchable.CanLaunch();
-            if (!canLaunch.Accepted)
-            {
-                command.Disable(canLaunch.Reason);
-            }
-
-            return command;
-        }
-
-        public static bool CanStartReturnHome(Building_PassengerShuttle shuttle, out string disabledReason)
+        public static bool CanStartReturnHomeWithLandingSelection(Building_PassengerShuttle shuttle, MapParent home, out string disabledReason)
         {
             disabledReason = null;
+            if (!CanUseHomeDestination(home, out disabledReason))
+            {
+                return false;
+            }
+
             if (!PassengerShuttleLaunchBridge.TryGetLaunchParts(shuttle, out CompLaunchable launchable, out _, out disabledReason))
             {
                 return false;
@@ -54,43 +32,68 @@ namespace BetterShuttleLaunch.ReturnHome
             return false;
         }
 
-        public static void StartReturnHome(Building_PassengerShuttle shuttle)
+        public static void StartReturnHomeWithLandingSelection(Building_PassengerShuttle shuttle, MapParent home)
         {
-            IReadOnlyList<MapParent> homes = HomeDestinationFinder.FindPlayerHomeMapParents();
-            if (homes.Count == 0)
+            if (!CanStartReturnHomeWithLandingSelection(shuttle, home, out string disabledReason))
             {
-                Messages.Message("BSL_NoValidHome".Translate(), MessageTypeDefOf.RejectInput, false);
+                Messages.Message(disabledReason, MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
-            if (homes.Count == 1)
-            {
-                LaunchTowardHome(shuttle, homes[0]);
-                return;
-            }
-
-            Find.WindowStack.Add(new Dialog_SelectHomeDestination(homes, home => LaunchTowardHome(shuttle, home)));
+            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTarget(shuttle, new GlobalTargetInfo(home), shuttle.LaunchableComp.TryLaunch);
         }
 
-        private static void LaunchTowardHome(Building_PassengerShuttle shuttle, MapParent home)
+        public static bool CanStartReturnHomeAtLastDepartureCell(Building_PassengerShuttle shuttle, MapParent home, out string disabledReason)
         {
-            string failReason = null;
-            if (BetterShuttleLaunchMod.ActiveSettings.AutoLandReturnHomeAtLastDepartureCell
-                && LaunchQueueGameComponent.Current != null
-                && LaunchQueueGameComponent.Current.TryGetLastDepartureLocation(shuttle, out LastDepartureLocation location)
-                && location.IsUsableFor(home)
-                && PassengerShuttleLaunchBridge.TryChooseSpecificLandingCell(shuttle, home, location.Cell, location.Rotation, shuttle.LaunchableComp.TryLaunch, out failReason))
+            disabledReason = null;
+            if (!CanUseHomeDestination(home, out disabledReason))
             {
+                return false;
+            }
+
+            if (LaunchQueueGameComponent.Current == null
+                || !LaunchQueueGameComponent.Current.TryGetLastDepartureLocation(shuttle, out LastDepartureLocation location)
+                || !location.IsUsableFor(home))
+            {
+                disabledReason = "BSL_LastDepartureCellUnavailable".Translate();
+                return false;
+            }
+
+            return PassengerShuttleLaunchBridge.CanChooseSpecificLandingCell(shuttle, home, location.Cell, location.Rotation, out disabledReason);
+        }
+
+        public static void StartReturnHomeAtLastDepartureCell(Building_PassengerShuttle shuttle, MapParent home)
+        {
+            if (!CanUseHomeDestination(home, out string disabledReason))
+            {
+                Messages.Message(disabledReason, MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
-            if (!failReason.NullOrEmpty())
+            if (LaunchQueueGameComponent.Current == null
+                || !LaunchQueueGameComponent.Current.TryGetLastDepartureLocation(shuttle, out LastDepartureLocation location)
+                || !location.IsUsableFor(home))
             {
-                Messages.Message("BSL_AutoReturnLandingFallback".Translate(failReason), MessageTypeDefOf.RejectInput, false);
+                Messages.Message("BSL_LastDepartureCellUnavailable".Translate(), MessageTypeDefOf.RejectInput, false);
+                return;
             }
 
-            GlobalTargetInfo target = new GlobalTargetInfo(home);
-            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTarget(shuttle, target, shuttle.LaunchableComp.TryLaunch);
+            if (!PassengerShuttleLaunchBridge.TryChooseSpecificLandingCell(shuttle, home, location.Cell, location.Rotation, shuttle.LaunchableComp.TryLaunch, out string failReason))
+            {
+                Messages.Message(failReason, MessageTypeDefOf.RejectInput, false);
+            }
+        }
+
+        private static bool CanUseHomeDestination(MapParent home, out string disabledReason)
+        {
+            disabledReason = null;
+            if (home != null && home.Spawned && home.HasMap)
+            {
+                return true;
+            }
+
+            disabledReason = "BSL_DestinationInvalid".Translate();
+            return false;
         }
     }
 }

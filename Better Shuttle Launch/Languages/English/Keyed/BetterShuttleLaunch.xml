@@ -7,8 +7,15 @@
   <BSL_NoAvailableShuttles>No available passenger shuttles on this map.</BSL_NoAvailableShuttles>
   <BSL_ReturnHome>Return Home</BSL_ReturnHome>
   <BSL_ReturnHomeDesc>Launch this passenger shuttle toward one of your home maps.</BSL_ReturnHomeDesc>
-  <BSL_SelectHome>Select Home</BSL_SelectHome>
+  <BSL_LaunchToSettlement>Launch to Settlement</BSL_LaunchToSettlement>
+  <BSL_ReturnToLastDeparture>Return</BSL_ReturnToLastDeparture>
+  <BSL_NoAvailableLaunchOptions>No available launch options.</BSL_NoAvailableLaunchOptions>
+  <BSL_SelectSettlement>Select Settlement</BSL_SelectSettlement>
+  <BSL_SelectReturnMode>Select Return Mode</BSL_SelectReturnMode>
+  <BSL_ReturnWithLandingSelection>Choose landing spot</BSL_ReturnWithLandingSelection>
+  <BSL_ReturnToLastDepartureCell>Last departure spot</BSL_ReturnToLastDepartureCell>
   <BSL_NoValidHome>No valid home destination is available.</BSL_NoValidHome>
+  <BSL_NoOtherSettlement>No other settlement is available.</BSL_NoOtherSettlement>
   <BSL_LaunchWhenReady>Launch When Ready</BSL_LaunchWhenReady>
   <BSL_LaunchWhenReadyDesc>Choose a destination now and automatically launch when loading, cooldown, and vanilla launch requirements are satisfied.</BSL_LaunchWhenReadyDesc>
   <BSL_CancelQueuedLaunch>Cancel Scheduled Launch</BSL_CancelQueuedLaunch>
@@ -24,12 +31,21 @@
   <BSL_StatusLoading>Loading</BSL_StatusLoading>
   <BSL_StatusIdle>Not loaded</BSL_StatusIdle>
   <BSL_StatusUnavailable>Unavailable</BSL_StatusUnavailable>
+  <BSL_StatusQueued>Queued</BSL_StatusQueued>
+  <BSL_StatusInFlight>In flight</BSL_StatusInFlight>
+  <BSL_StatusArrived>Arrived</BSL_StatusArrived>
+  <BSL_LaunchStatusUnavailable>Launch status: {0} - {1}</BSL_LaunchStatusUnavailable>
+  <BSL_LoadShuttleBeforeImmediateLaunch>Configure loading before launching immediately.</BSL_LoadShuttleBeforeImmediateLaunch>
+  <BSL_LastDepartureCellUnavailable>The last departure spot cannot be used.</BSL_LastDepartureCellUnavailable>
+  <BSL_NoQueuedLaunch>No scheduled launch is queued.</BSL_NoQueuedLaunch>
   <BSL_QueuedForDestination>Launch queued. Destination: {0}</BSL_QueuedForDestination>
   <BSL_QueuedLaunchCanceled>Scheduled shuttle launch was cancelled.</BSL_QueuedLaunchCanceled>
   <BSL_LoadingCanceled>loading was cancelled</BSL_LoadingCanceled>
   <BSL_AutoReturnLandingFallback>Could not use the last departure landing spot: {0}</BSL_AutoReturnLandingFallback>
-  <BSL_SettingHideSettlementJumpWhenSingleColony>Hide the settlement jump button when there is only one colony</BSL_SettingHideSettlementJumpWhenSingleColony>
-  <BSL_SettingHideSettlementJumpWhenSingleColonyDesc>Removes the world-map settlement jump command from player settlements when there is only one player home map.</BSL_SettingHideSettlementJumpWhenSingleColonyDesc>
-  <BSL_SettingAutoLandReturnHomeAtLastDepartureCell>Return Home lands at the last departure spot</BSL_SettingAutoLandReturnHomeAtLastDepartureCell>
-  <BSL_SettingAutoLandReturnHomeAtLastDepartureCellDesc>When possible, Return Home launches directly to the shuttle's last departure cell. If the cell is blocked, the normal vanilla landing selection is used.</BSL_SettingAutoLandReturnHomeAtLastDepartureCellDesc>
+  <BSL_ShuttleTracker>Shuttle Control</BSL_ShuttleTracker>
+  <BSL_ReadyShortcut>Ready</BSL_ReadyShortcut>
+  <BSL_SettingHideVanillaLaunchCommand>Hide the vanilla launch button</BSL_SettingHideVanillaLaunchCommand>
+  <BSL_SettingHideVanillaLaunchCommandDesc>Uses Better Shuttle Launch's unified Launch When Ready command as the main shuttle command.</BSL_SettingHideVanillaLaunchCommandDesc>
+  <BSL_SettingShowLaunchStatusInInspectPane>Show launch status in the inspect pane</BSL_SettingShowLaunchStatusInInspectPane>
+  <BSL_SettingShowLaunchStatusInInspectPaneDesc>Shows the same vanilla launch-blocking reason in the lower-left inspect pane.</BSL_SettingShowLaunchStatusInInspectPaneDesc>
 </LanguageData>
