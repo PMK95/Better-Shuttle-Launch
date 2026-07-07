@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <BSL_LaunchShuttle>Launch Shuttle</BSL_LaunchShuttle>
+  <BSL_LaunchShuttleDesc>Configure or launch a passenger shuttle on this map.</BSL_LaunchShuttleDesc>
+  <BSL_SelectShuttle>Select Shuttle</BSL_SelectShuttle>
+  <BSL_NoShuttles>No passenger shuttles are available on this map.</BSL_NoShuttles>
+  <BSL_NoAvailableShuttles>No available passenger shuttles on this map.</BSL_NoAvailableShuttles>
+  <BSL_ReturnHome>Return Home</BSL_ReturnHome>
+  <BSL_ReturnHomeDesc>Launch this passenger shuttle toward one of your home maps.</BSL_ReturnHomeDesc>
+  <BSL_SelectHome>Select Home</BSL_SelectHome>
+  <BSL_NoValidHome>No valid home destination is available.</BSL_NoValidHome>
+  <BSL_LaunchWhenReady>Launch When Ready</BSL_LaunchWhenReady>
+  <BSL_LaunchWhenReadyDesc>Choose a destination now and automatically launch when loading, cooldown, and vanilla launch requirements are satisfied.</BSL_LaunchWhenReadyDesc>
+  <BSL_CancelQueuedLaunch>Cancel Scheduled Launch</BSL_CancelQueuedLaunch>
+  <BSL_CancelQueuedLaunchDesc>Cancel only the scheduled automatic launch. Existing loading orders are left unchanged.</BSL_CancelQueuedLaunchDesc>
+  <BSL_LaunchQueued>Launch queued</BSL_LaunchQueued>
+  <BSL_WaitingForLoading>Waiting for loading</BSL_WaitingForLoading>
+  <BSL_WaitingForCooldown>Waiting for cooldown: {0}</BSL_WaitingForCooldown>
+  <BSL_AutoLaunchFailed>Automatic shuttle launch was cancelled: {0}</BSL_AutoLaunchFailed>
+  <BSL_DestinationInvalid>destination is no longer valid</BSL_DestinationInvalid>
+  <BSL_ShuttleUnavailable>shuttle is no longer available</BSL_ShuttleUnavailable>
+  <BSL_Select> Select </BSL_Select>
+  <BSL_StatusReady>Ready</BSL_StatusReady>
+  <BSL_StatusLoading>Loading</BSL_StatusLoading>
+  <BSL_StatusIdle>Not loaded</BSL_StatusIdle>
+  <BSL_StatusUnavailable>Unavailable</BSL_StatusUnavailable>
+  <BSL_QueuedForDestination>Launch queued. Destination: {0}</BSL_QueuedForDestination>
+  <BSL_QueuedLaunchCanceled>Scheduled shuttle launch was cancelled.</BSL_QueuedLaunchCanceled>
+  <BSL_LoadingCanceled>loading was cancelled</BSL_LoadingCanceled>
+  <BSL_AutoReturnLandingFallback>Could not use the last departure landing spot: {0}</BSL_AutoReturnLandingFallback>
+  <BSL_SettingHideSettlementJumpWhenSingleColony>Hide the settlement jump button when there is only one colony</BSL_SettingHideSettlementJumpWhenSingleColony>
+  <BSL_SettingHideSettlementJumpWhenSingleColonyDesc>Removes the world-map settlement jump command from player settlements when there is only one player home map.</BSL_SettingHideSettlementJumpWhenSingleColonyDesc>
+  <BSL_SettingAutoLandReturnHomeAtLastDepartureCell>Return Home lands at the last departure spot</BSL_SettingAutoLandReturnHomeAtLastDepartureCell>
+  <BSL_SettingAutoLandReturnHomeAtLastDepartureCellDesc>When possible, Return Home launches directly to the shuttle's last departure cell. If the cell is blocked, the normal vanilla landing selection is used.</BSL_SettingAutoLandReturnHomeAtLastDepartureCellDesc>
+</LanguageData>

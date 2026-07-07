@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <BSL_LaunchShuttle>셔틀 발진</BSL_LaunchShuttle>
+  <BSL_LaunchShuttleDesc>이 정착지의 탑승자 셔틀 적재를 설정하거나 발진 절차를 시작합니다.</BSL_LaunchShuttleDesc>
+  <BSL_SelectShuttle>셔틀 선택</BSL_SelectShuttle>
+  <BSL_NoShuttles>이 정착지에 사용할 수 있는 탑승자 셔틀이 없습니다.</BSL_NoShuttles>
+  <BSL_NoAvailableShuttles>이 정착지에 사용할 수 있는 탑승자 셔틀이 없습니다.</BSL_NoAvailableShuttles>
+  <BSL_ReturnHome>기지로 귀환</BSL_ReturnHome>
+  <BSL_ReturnHomeDesc>이 탑승자 셔틀을 플레이어 기지 중 하나로 발진시킵니다.</BSL_ReturnHomeDesc>
+  <BSL_SelectHome>기지 선택</BSL_SelectHome>
+  <BSL_NoValidHome>유효한 기지 목적지가 없습니다.</BSL_NoValidHome>
+  <BSL_LaunchWhenReady>준비되면 발진</BSL_LaunchWhenReady>
+  <BSL_LaunchWhenReadyDesc>목적지를 지정하고 적재, 재사용 대기시간, 바닐라 발진 조건이 모두 충족되면 자동으로 발진합니다.</BSL_LaunchWhenReadyDesc>
+  <BSL_CancelQueuedLaunch>예약 발진 취소</BSL_CancelQueuedLaunch>
+  <BSL_CancelQueuedLaunchDesc>자동 발진 예약만 취소합니다. 기존 적재 명령은 유지됩니다.</BSL_CancelQueuedLaunchDesc>
+  <BSL_LaunchQueued>발진 예약됨</BSL_LaunchQueued>
+  <BSL_WaitingForLoading>적재 대기 중</BSL_WaitingForLoading>
+  <BSL_WaitingForCooldown>재사용 대기시간 대기 중: {0}</BSL_WaitingForCooldown>
+  <BSL_AutoLaunchFailed>자동 셔틀 발진이 취소되었습니다: {0}</BSL_AutoLaunchFailed>
+  <BSL_DestinationInvalid>목적지가 더 이상 유효하지 않습니다.</BSL_DestinationInvalid>
+  <BSL_ShuttleUnavailable>셔틀을 더 이상 사용할 수 없습니다.</BSL_ShuttleUnavailable>
+  <BSL_Select>선택</BSL_Select>
+  <BSL_StatusReady>준비됨</BSL_StatusReady>
+  <BSL_StatusLoading>적재 중</BSL_StatusLoading>
+  <BSL_StatusIdle>미적재</BSL_StatusIdle>
+  <BSL_StatusUnavailable>사용 불가</BSL_StatusUnavailable>
+  <BSL_QueuedForDestination>발진을 예약했습니다. 목적지: {0}</BSL_QueuedForDestination>
+  <BSL_QueuedLaunchCanceled>셔틀 발진 예약을 취소했습니다.</BSL_QueuedLaunchCanceled>
+  <BSL_LoadingCanceled>적재가 취소되었습니다.</BSL_LoadingCanceled>
+  <BSL_AutoReturnLandingFallback>마지막 출발 착륙 지점을 사용할 수 없습니다: {0}</BSL_AutoReturnLandingFallback>
+  <BSL_SettingHideSettlementJumpWhenSingleColony>식민지가 하나일 때 정착지 이동 버튼 숨김</BSL_SettingHideSettlementJumpWhenSingleColony>
+  <BSL_SettingHideSettlementJumpWhenSingleColonyDesc>플레이어 기지가 하나뿐이면 세계 지도 정착지 명령에서 정착지 이동 버튼을 제거합니다.</BSL_SettingHideSettlementJumpWhenSingleColonyDesc>
+  <BSL_SettingAutoLandReturnHomeAtLastDepartureCell>기지로 귀환 시 마지막 출발 위치에 착륙</BSL_SettingAutoLandReturnHomeAtLastDepartureCell>
+  <BSL_SettingAutoLandReturnHomeAtLastDepartureCellDesc>가능하면 기지로 귀환 명령이 셔틀의 마지막 출발 셀에 바로 착륙합니다. 해당 셀이 막혀 있으면 바닐라 착륙 선택으로 돌아갑니다.</BSL_SettingAutoLandReturnHomeAtLastDepartureCellDesc>
+</LanguageData>
