@@ -44,6 +44,32 @@
   <BSL_AutoReturnLandingFallback>Could not use the last departure landing spot: {0}</BSL_AutoReturnLandingFallback>
   <BSL_ShuttleTracker>Shuttle Control</BSL_ShuttleTracker>
   <BSL_ReadyShortcut>Ready</BSL_ReadyShortcut>
+  <BSL_QuickReturn>Return</BSL_QuickReturn>
+  <BSL_ShuttleCompactStats>F {0}  HP {1}  M {2}  P {3}</BSL_ShuttleCompactStats>
+  <BSL_FocusShuttle>Locate</BSL_FocusShuttle>
+  <BSL_ShuttleTrackerHeaderTooltip>Shuttle control. Right-drag the header to move this panel.</BSL_ShuttleTrackerHeaderTooltip>
+  <BSL_TrackerFilterAllTooltip>Showing all player passenger shuttles. Click to show only shuttles currently on this map.</BSL_TrackerFilterAllTooltip>
+  <BSL_TrackerFilterLocalTooltip>Showing only shuttles currently on this map. Click to show all player passenger shuttles.</BSL_TrackerFilterLocalTooltip>
+  <BSL_MinimizeTrackerTooltip>Minimize shuttle control.</BSL_MinimizeTrackerTooltip>
+  <BSL_RestoreTrackerTooltip>Restore shuttle control.</BSL_RestoreTrackerTooltip>
+  <BSL_StateIconTooltip>Status: {0}</BSL_StateIconTooltip>
+  <BSL_RouteTooltip>Route: {0} -> {1}</BSL_RouteTooltip>
+  <BSL_ShuttleFocusTooltip>{0}\nClick to jump to this shuttle or its current world position.</BSL_ShuttleFocusTooltip>
+  <BSL_FocusShuttleTooltip>Jump to this shuttle or its current world position.</BSL_FocusShuttleTooltip>
+  <BSL_ReadyShortcutTooltip>Open loading and destination selection, then schedule launch when ready.</BSL_ReadyShortcutTooltip>
+  <BSL_QuickReturnTooltip>Schedule a return launch to the last departure map.</BSL_QuickReturnTooltip>
+  <BSL_DisabledReasonTooltip>{0}\n\nUnavailable: {1}</BSL_DisabledReasonTooltip>
+  <BSL_ShuttleFuelTooltip>Fuel: {0}</BSL_ShuttleFuelTooltip>
+  <BSL_ShuttleHealthTooltip>Hull: {0} / {1}</BSL_ShuttleHealthTooltip>
+  <BSL_ShuttleMassTooltip>Mass: {0}</BSL_ShuttleMassTooltip>
+  <BSL_ShuttlePassengersTooltip>Passengers: {0}</BSL_ShuttlePassengersTooltip>
+  <BSL_MapPassengerOverlayTooltip>{0}\nLoaded passengers: {1}</BSL_MapPassengerOverlayTooltip>
+  <BSL_MenuLaunchToSettlementDesc>List other player settlements and schedule launch after choosing a landing spot.</BSL_MenuLaunchToSettlementDesc>
+  <BSL_MenuReturnDesc>Schedule a return launch to the last departure map.</BSL_MenuReturnDesc>
+  <BSL_MenuCancelQueuedLaunchDesc>Cancel the scheduled automatic launch. Existing loading orders remain unchanged.</BSL_MenuCancelQueuedLaunchDesc>
+  <BSL_SelectSettlementDestinationTooltip>Schedule launch to {0}. You will choose a landing spot next.</BSL_SelectSettlementDestinationTooltip>
+  <BSL_ReturnWithLandingSelectionTooltip>Return to {0} and choose a landing spot.</BSL_ReturnWithLandingSelectionTooltip>
+  <BSL_ReturnToLastDepartureCellTooltip>Return to {0} and use the last departure spot if it is still valid.</BSL_ReturnToLastDepartureCellTooltip>
   <BSL_SettingHideVanillaLaunchCommand>Hide the vanilla launch button</BSL_SettingHideVanillaLaunchCommand>
   <BSL_SettingHideVanillaLaunchCommandDesc>Uses Better Shuttle Launch's unified Launch When Ready command as the main shuttle command.</BSL_SettingHideVanillaLaunchCommandDesc>
   <BSL_SettingShowLaunchStatusInInspectPane>Show launch status in the inspect pane</BSL_SettingShowLaunchStatusInInspectPane>

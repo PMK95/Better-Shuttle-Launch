@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using BetterShuttleLaunch.Shuttles;
 using BetterShuttleLaunch.ReturnHome;
-using BetterShuttleLaunch.UI;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
@@ -53,20 +52,25 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartSettlementLaunchFlow(Building_PassengerShuttle shuttle)
         {
-            if (!CanQueueLaunchWhenReady(shuttle, out string disabledReason))
-            {
-                Messages.Message(disabledReason, MessageTypeDefOf.RejectInput, false);
-                return;
-            }
-
-            IReadOnlyList<MapParent> destinations = SettlementDestinationFinder.FindOtherPlayerHomeMapParents(shuttle.Map?.Parent);
-            if (destinations.Count == 0)
+            if (!CanStartSettlementLaunchFlow(shuttle))
             {
                 Messages.Message("BSL_NoOtherSettlement".Translate(), MessageTypeDefOf.RejectInput, false);
                 return;
             }
 
-            Find.WindowStack.Add(new Dialog_SelectHomeDestination(destinations, destination => StartSettlementLaunchToSelectedSettlement(shuttle, destination)));
+            IReadOnlyList<MapParent> destinations = SettlementDestinationFinder.FindOtherPlayerHomeMapParents(shuttle.Map?.Parent);
+            List<FloatMenuOption> options = new List<FloatMenuOption>();
+            for (int i = 0; i < destinations.Count; i++)
+            {
+                MapParent destination = destinations[i];
+                options.Add(CreateWorldTargetMenuOption(
+                    destination.LabelCap,
+                    () => StartSettlementLaunchToSelectedSettlement(shuttle, destination),
+                    "BSL_SelectSettlementDestinationTooltip".Translate(destination.LabelCap),
+                    destination));
+            }
+
+            Find.WindowStack.Add(new FloatMenu(options));
         }
 
         public static void StartCaravanSettlementLaunchFlow(Caravan caravan)
@@ -84,7 +88,18 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return;
             }
 
-            Find.WindowStack.Add(new Dialog_SelectHomeDestination(destinations, destination => StartCaravanSettlementLaunchToSelectedSettlement(caravan, destination)));
+            List<FloatMenuOption> options = new List<FloatMenuOption>();
+            for (int i = 0; i < destinations.Count; i++)
+            {
+                MapParent destination = destinations[i];
+                options.Add(CreateWorldTargetMenuOption(
+                    destination.LabelCap,
+                    () => StartCaravanSettlementLaunchToSelectedSettlement(caravan, destination),
+                    "BSL_SelectSettlementDestinationTooltip".Translate(destination.LabelCap),
+                    destination));
+            }
+
+            Find.WindowStack.Add(new FloatMenu(options));
         }
 
         public static void StartReturnFlow(Building_PassengerShuttle shuttle)
@@ -95,9 +110,19 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return;
             }
 
-            Find.WindowStack.Add(new Dialog_SelectReturnLaunchMode(
-                () => StartReturnWithLandingSelection(shuttle, location.MapParent),
-                () => StartReturnToLastDepartureCell(shuttle, location)));
+            Find.WindowStack.Add(new FloatMenu(new List<FloatMenuOption>
+            {
+                CreateWorldTargetMenuOption(
+                    "BSL_ReturnWithLandingSelection".Translate(),
+                    () => StartReturnWithLandingSelection(shuttle, location.MapParent),
+                    "BSL_ReturnWithLandingSelectionTooltip".Translate(location.MapParent.LabelCap),
+                    location.MapParent),
+                CreateWorldTargetMenuOption(
+                    "BSL_ReturnToLastDepartureCell".Translate(),
+                    () => StartReturnToLastDepartureCell(shuttle, location),
+                    "BSL_ReturnToLastDepartureCellTooltip".Translate(location.MapParent.LabelCap),
+                    location.MapParent)
+            }));
         }
 
         public static void StartCaravanReturnFlow(Caravan caravan)
@@ -109,9 +134,30 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return;
             }
 
-            Find.WindowStack.Add(new Dialog_SelectReturnLaunchMode(
-                () => StartCaravanReturnWithLandingSelection(caravan, location.MapParent),
-                () => StartCaravanReturnToLastDepartureCell(caravan, location)));
+            Find.WindowStack.Add(new FloatMenu(new List<FloatMenuOption>
+            {
+                CreateWorldTargetMenuOption(
+                    "BSL_ReturnWithLandingSelection".Translate(),
+                    () => StartCaravanReturnWithLandingSelection(caravan, location.MapParent),
+                    "BSL_ReturnWithLandingSelectionTooltip".Translate(location.MapParent.LabelCap),
+                    location.MapParent),
+                CreateWorldTargetMenuOption(
+                    "BSL_ReturnToLastDepartureCell".Translate(),
+                    () => StartCaravanReturnToLastDepartureCell(caravan, location),
+                    "BSL_ReturnToLastDepartureCellTooltip".Translate(location.MapParent.LabelCap),
+                    location.MapParent)
+            }));
+        }
+
+        public static bool CanStartSettlementLaunchFlow(Building_PassengerShuttle shuttle)
+        {
+            return CanQueueLaunchWhenReady(shuttle, out _)
+                   && SettlementDestinationFinder.FindOtherPlayerHomeMapParents(shuttle.Map?.Parent).Count > 0;
+        }
+
+        public static bool CanStartReturnFlow(Building_PassengerShuttle shuttle)
+        {
+            return TryGetLastDepartureLocation(shuttle, out _);
         }
 
         public static void QueueMapShuttleLaunch(
@@ -288,6 +334,28 @@ namespace BetterShuttleLaunch.LaunchQueue
         private static string GetDestinationLabel(PlanetTile destinationTile, TransportersArrivalAction arrivalAction)
         {
             return destinationTile.ToString();
+        }
+
+        private static FloatMenuOption CreateWorldTargetMenuOption(string label, Action action, string tooltip, WorldObject worldObject)
+        {
+            return new FloatMenuOption(
+                label,
+                action,
+                MenuOptionPriority.Default,
+                _ =>
+                {
+                    if (worldObject != null && !worldObject.Destroyed)
+                    {
+                        TargetHighlighter.Highlight(new GlobalTargetInfo(worldObject), true, true, true);
+                    }
+                },
+                null,
+                0f,
+                null,
+                worldObject)
+            {
+                tooltip = tooltip.NullOrEmpty() ? (TipSignal?)null : new TipSignal(tooltip)
+            };
         }
     }
 }

@@ -9,6 +9,7 @@ namespace BetterShuttleLaunch.Settings
         public float TrackerWindowX = -1f;
         public float TrackerWindowY = 80f;
         public bool TrackerWindowMinimized;
+        public bool TrackerShowOnlyCurrentMapShuttles;
 
         public override void ExposeData()
         {
@@ -17,6 +18,7 @@ namespace BetterShuttleLaunch.Settings
             Scribe_Values.Look(ref TrackerWindowX, "trackerWindowX", -1f);
             Scribe_Values.Look(ref TrackerWindowY, "trackerWindowY", 80f);
             Scribe_Values.Look(ref TrackerWindowMinimized, "trackerWindowMinimized", false);
+            Scribe_Values.Look(ref TrackerShowOnlyCurrentMapShuttles, "trackerShowOnlyCurrentMapShuttles", false);
         }
     }
 }

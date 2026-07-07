@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using BetterShuttleLaunch.LaunchQueue;
+using BetterShuttleLaunch.ReturnHome;
 using BetterShuttleLaunch.UI;
 using RimWorld;
 using RimWorld.Planet;
@@ -19,7 +20,9 @@ namespace BetterShuttleLaunch.Commands
             {
                 defaultLabel = isQueued ? "BSL_CancelQueuedLaunch".Translate() : "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = isQueued ? "BSL_CancelQueuedLaunchDesc".Translate() : "BSL_LaunchWhenReadyDesc".Translate(),
-                icon = isQueued ? CompTransporter.CancelLoadCommandTex : CompLaunchable.LaunchCommandTex
+                icon = isQueued
+                    ? BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandCancelLaunch, CompTransporter.CancelLoadCommandTex)
+                    : BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandLaunchWhenReady, CompLaunchable.LaunchCommandTex)
             };
 
             return command;
@@ -35,7 +38,9 @@ namespace BetterShuttleLaunch.Commands
             {
                 defaultLabel = singleQueued ? "BSL_CancelQueuedLaunch".Translate() : "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = singleQueued ? "BSL_CancelQueuedLaunchDesc".Translate() : "BSL_LaunchWhenReadyDesc".Translate(),
-                icon = singleQueued ? CompTransporter.CancelLoadCommandTex : CompLaunchable.LaunchCommandTex
+                icon = singleQueued
+                    ? BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandCancelLaunch, CompTransporter.CancelLoadCommandTex)
+                    : BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandLaunchWhenReady, CompLaunchable.LaunchCommandTex)
             };
 
             if (shuttleList.Count == 0)
@@ -55,7 +60,9 @@ namespace BetterShuttleLaunch.Commands
             {
                 defaultLabel = isQueued ? "BSL_CancelQueuedLaunch".Translate() : "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = isQueued ? "BSL_CancelQueuedLaunchDesc".Translate() : "BSL_LaunchWhenReadyDesc".Translate(),
-                icon = isQueued ? CompTransporter.CancelLoadCommandTex : CompLaunchable.LaunchCommandTex
+                icon = isQueued
+                    ? BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandCancelLaunch, CompTransporter.CancelLoadCommandTex)
+                    : BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandLaunchWhenReady, CompLaunchable.LaunchCommandTex)
             };
 
             return command;
@@ -65,8 +72,16 @@ namespace BetterShuttleLaunch.Commands
         {
             List<FloatMenuOption> options = new List<FloatMenuOption>();
             AddCancelMapLaunchOption(options, shuttles);
-            options.Add(new FloatMenuOption("BSL_LaunchToSettlement".Translate(), () => StartSettlementLaunch(shuttles)));
-            options.Add(new FloatMenuOption("BSL_ReturnToLastDeparture".Translate(), () => StartReturnLaunch(shuttles)));
+            options.Add(CreateConditionalOptionWithTooltip(
+                "BSL_LaunchToSettlement".Translate(),
+                "BSL_MenuLaunchToSettlementDesc".Translate(),
+                () => StartSettlementLaunch(shuttles),
+                GetSettlementLaunchDisabledReason(shuttles)));
+            options.Add(CreateConditionalOptionWithTooltip(
+                "BSL_ReturnToLastDeparture".Translate(),
+                "BSL_MenuReturnDesc".Translate(),
+                () => StartReturnLaunch(shuttles),
+                GetReturnLaunchDisabledReason(shuttles)));
             return options;
         }
 
@@ -75,11 +90,19 @@ namespace BetterShuttleLaunch.Commands
             List<FloatMenuOption> options = new List<FloatMenuOption>();
             if (LaunchQueueGameComponent.Current?.IsQueued(caravan) == true)
             {
-                options.Add(new FloatMenuOption("BSL_CancelQueuedLaunch".Translate(), () => CancelQueuedCaravanLaunch(caravan)));
+                options.Add(CreateMenuOptionWithTooltip("BSL_CancelQueuedLaunch".Translate(), () => CancelQueuedCaravanLaunch(caravan), "BSL_MenuCancelQueuedLaunchDesc".Translate()));
             }
 
-            options.Add(new FloatMenuOption("BSL_LaunchToSettlement".Translate(), () => PassengerShuttleLaunchQueueCommandUtility.StartCaravanSettlementLaunchFlow(caravan)));
-            options.Add(new FloatMenuOption("BSL_ReturnToLastDeparture".Translate(), () => PassengerShuttleLaunchQueueCommandUtility.StartCaravanReturnFlow(caravan)));
+            options.Add(CreateConditionalOptionWithTooltip(
+                "BSL_LaunchToSettlement".Translate(),
+                "BSL_MenuLaunchToSettlementDesc".Translate(),
+                () => PassengerShuttleLaunchQueueCommandUtility.StartCaravanSettlementLaunchFlow(caravan),
+                GetCaravanSettlementLaunchDisabledReason(caravan)));
+            options.Add(CreateConditionalOptionWithTooltip(
+                "BSL_ReturnToLastDeparture".Translate(),
+                "BSL_MenuReturnDesc".Translate(),
+                () => PassengerShuttleLaunchQueueCommandUtility.StartCaravanReturnFlow(caravan),
+                PassengerShuttleLaunchQueueCommandUtility.CanStartReturnFlow(caravan?.Shuttle) ? null : "BSL_LastDepartureCellUnavailable".Translate()));
             return options;
         }
 
@@ -93,11 +116,11 @@ namespace BetterShuttleLaunch.Commands
 
             if (queuedShuttles.Count == 1)
             {
-                options.Add(new FloatMenuOption("BSL_CancelQueuedLaunch".Translate(), () => CancelQueuedMapLaunch(queuedShuttles[0])));
+                options.Add(CreateMenuOptionWithTooltip("BSL_CancelQueuedLaunch".Translate(), () => CancelQueuedMapLaunch(queuedShuttles[0]), "BSL_MenuCancelQueuedLaunchDesc".Translate()));
                 return;
             }
 
-            options.Add(new FloatMenuOption("BSL_CancelQueuedLaunch".Translate(), () => SelectMapShuttle(queuedShuttles, CancelQueuedMapLaunch)));
+            options.Add(CreateMenuOptionWithTooltip("BSL_CancelQueuedLaunch".Translate(), () => SelectMapShuttle(queuedShuttles, CancelQueuedMapLaunch), "BSL_MenuCancelQueuedLaunchDesc".Translate()));
         }
 
         private static void StartQueuedMapLaunch(IReadOnlyList<Building_PassengerShuttle> shuttles)
@@ -131,7 +154,7 @@ namespace BetterShuttleLaunch.Commands
                 return;
             }
 
-            SelectMapShuttle(shuttles, PassengerShuttleLaunchQueueCommandUtility.StartSettlementLaunchFlow);
+            SelectMapShuttle(FindSettlementLaunchTargetShuttles(shuttles), PassengerShuttleLaunchQueueCommandUtility.StartSettlementLaunchFlow);
         }
 
         private static void StartReturnLaunch(IReadOnlyList<Building_PassengerShuttle> shuttles)
@@ -148,7 +171,7 @@ namespace BetterShuttleLaunch.Commands
                 return;
             }
 
-            SelectMapShuttle(shuttles, PassengerShuttleLaunchQueueCommandUtility.StartReturnFlow);
+            SelectMapShuttle(FindReturnTargetShuttles(shuttles), PassengerShuttleLaunchQueueCommandUtility.StartReturnFlow);
         }
 
         private static void SelectMapShuttle(IReadOnlyList<Building_PassengerShuttle> shuttles, Action<Building_PassengerShuttle> selectAction)
@@ -178,6 +201,85 @@ namespace BetterShuttleLaunch.Commands
             }
 
             return queuedShuttles;
+        }
+
+        private static string GetSettlementLaunchDisabledReason(IReadOnlyList<Building_PassengerShuttle> shuttles)
+        {
+            if (shuttles.Count == 0)
+            {
+                return "BSL_NoShuttles".Translate();
+            }
+
+            if (FindSettlementLaunchTargetShuttles(shuttles).Count > 0)
+            {
+                return null;
+            }
+
+            return "BSL_NoOtherSettlement".Translate();
+        }
+
+        private static string GetReturnLaunchDisabledReason(IReadOnlyList<Building_PassengerShuttle> shuttles)
+        {
+            if (shuttles.Count == 0)
+            {
+                return "BSL_NoShuttles".Translate();
+            }
+
+            return FindReturnTargetShuttles(shuttles).Count > 0 ? null : "BSL_LastDepartureCellUnavailable".Translate();
+        }
+
+        private static string GetCaravanSettlementLaunchDisabledReason(Caravan caravan)
+        {
+            if (!PassengerShuttleLaunchQueueCommandUtility.CanQueueCaravanLaunchWhenReady(caravan, out string disabledReason))
+            {
+                return disabledReason;
+            }
+
+            return SettlementDestinationFinder.FindOtherPlayerHomeMapParents(null).Count > 0 ? null : "BSL_NoOtherSettlement".Translate();
+        }
+
+        private static List<Building_PassengerShuttle> FindSettlementLaunchTargetShuttles(IReadOnlyList<Building_PassengerShuttle> shuttles)
+        {
+            List<Building_PassengerShuttle> availableShuttles = new List<Building_PassengerShuttle>();
+            for (int i = 0; i < shuttles.Count; i++)
+            {
+                if (PassengerShuttleLaunchQueueCommandUtility.CanStartSettlementLaunchFlow(shuttles[i]))
+                {
+                    availableShuttles.Add(shuttles[i]);
+                }
+            }
+
+            return availableShuttles;
+        }
+
+        private static List<Building_PassengerShuttle> FindReturnTargetShuttles(IReadOnlyList<Building_PassengerShuttle> shuttles)
+        {
+            List<Building_PassengerShuttle> availableShuttles = new List<Building_PassengerShuttle>();
+            for (int i = 0; i < shuttles.Count; i++)
+            {
+                if (PassengerShuttleLaunchQueueCommandUtility.CanStartReturnFlow(shuttles[i]))
+                {
+                    availableShuttles.Add(shuttles[i]);
+                }
+            }
+
+            return availableShuttles;
+        }
+
+        private static FloatMenuOption CreateConditionalOptionWithTooltip(string label, string description, Action action, string disabledReason)
+        {
+            string tooltip = disabledReason.NullOrEmpty()
+                ? description
+                : "BSL_DisabledReasonTooltip".Translate(description, disabledReason);
+            return CreateMenuOptionWithTooltip(label, disabledReason.NullOrEmpty() ? action : null, tooltip);
+        }
+
+        private static FloatMenuOption CreateMenuOptionWithTooltip(string label, Action action, string tooltip)
+        {
+            return new FloatMenuOption(label, action)
+            {
+                tooltip = tooltip.NullOrEmpty() ? (TipSignal?)null : new TipSignal(tooltip)
+            };
         }
     }
 }

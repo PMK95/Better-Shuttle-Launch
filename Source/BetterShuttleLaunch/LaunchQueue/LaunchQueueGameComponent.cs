@@ -374,7 +374,7 @@ namespace BetterShuttleLaunch.LaunchQueue
             for (int i = trackedFlights.Count - 1; i >= 0; i--)
             {
                 TrackedPassengerShuttleFlight trackedFlight = trackedFlights[i];
-                if (trackedFlight?.Shuttle == null)
+                if (trackedFlight?.Shuttle == null || trackedFlight.Shuttle.Destroyed)
                 {
                     trackedFlights.RemoveAt(i);
                     continue;
