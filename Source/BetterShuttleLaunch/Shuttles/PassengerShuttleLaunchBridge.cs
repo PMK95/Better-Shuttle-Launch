@@ -675,7 +675,7 @@ namespace BetterShuttleLaunch.Shuttles
                 return;
             }
 
-            Find.MainTabsRoot?.SetCurrentTab(MainButtonDefOf.World, true);
+            TryOpenWorldTabForQueuedTargeting();
             Find.WorldTargeter.BeginTargeting(
                 target =>
                 {
@@ -697,6 +697,18 @@ namespace BetterShuttleLaunch.Shuttles
                 target => CanSelectQueuedWorldTarget(originTile, launchable, target, out _),
                 originTile,
                 true);
+        }
+
+        private static void TryOpenWorldTabForQueuedTargeting()
+        {
+            try
+            {
+                Find.MainTabsRoot?.SetCurrentTab(MainButtonDefOf.World, true);
+            }
+            catch (Exception exception)
+            {
+                Log.Warning("[Better Shuttle Launch] 예약 발사 목적지 선택을 위해 세계 탭을 여는 중 오류가 발생했습니다. 목적지 선택은 계속 시도합니다: " + exception);
+            }
         }
 
         private static TaggedString GetQueuedTargetingLabel(PlanetTile originTile, CompLaunchable launchable, GlobalTargetInfo target)

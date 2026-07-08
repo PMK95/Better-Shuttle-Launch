@@ -27,7 +27,7 @@ namespace BetterShuttleLaunch.UI
             base.PostClose();
             if (accepted)
             {
-                afterAccepted?.Invoke();
+                DeferredUiActionGameComponent.RunOnNextUpdate(afterAccepted);
             }
         }
     }
