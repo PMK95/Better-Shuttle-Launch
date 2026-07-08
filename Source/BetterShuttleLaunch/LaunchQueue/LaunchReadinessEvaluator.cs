@@ -59,6 +59,18 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return Cancel("BSL_LoadingCanceled".Translate());
             }
 
+            QueuedLaunchRangeInfo rangeInfo = QueuedLaunchRangeInfo.ForTile(queuedLaunch.Shuttle.Tile, launchable, queuedLaunch.DestinationTile, queuedLaunch.Shuttle.FuelLevel);
+            if (!rangeInfo.CanSelectDestination)
+            {
+                string reason = rangeInfo.FailureReason.NullOrEmpty() ? "BSL_DestinationInvalid".Translate() : rangeInfo.FailureReason;
+                return Cancel(reason);
+            }
+
+            if (!rangeInfo.CanLaunchWithCurrentFuel)
+            {
+                return Wait("BSL_WaitingForFuel".Translate(rangeInfo.Distance.ToString(), rangeInfo.CurrentFuelRangeText));
+            }
+
             FloatMenuAcceptanceReport stillValid = queuedLaunch.ArrivalAction.StillValid(transportersInGroup, queuedLaunch.DestinationTile);
             if (!stillValid.Accepted)
             {
@@ -100,16 +112,16 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return Wait(canLaunch.Reason.NullOrEmpty() ? "BSL_StatusUnavailable".Translate() : canLaunch.Reason);
             }
 
-            int distance = Find.WorldGrid.TraversalDistanceBetween(caravan.Tile, queuedLaunch.DestinationTile, true, int.MaxValue, true);
-            int maxLaunchDistance = shuttle.LaunchableComp.MaxLaunchDistanceEver(queuedLaunch.DestinationTile.Layer);
-            if (maxLaunchDistance >= 0 && distance > maxLaunchDistance)
+            QueuedLaunchRangeInfo rangeInfo = QueuedLaunchRangeInfo.ForTile(caravan.Tile, shuttle.LaunchableComp, queuedLaunch.DestinationTile, shuttle.FuelLevel);
+            if (!rangeInfo.CanSelectDestination)
             {
-                return Cancel("TransportPodDestinationBeyondMaximumRange".Translate());
+                string reason = rangeInfo.FailureReason.NullOrEmpty() ? "BSL_DestinationInvalid".Translate() : rangeInfo.FailureReason;
+                return Cancel(reason);
             }
 
-            if (distance > shuttle.LaunchableComp.MaxLaunchDistanceAtFuelLevel(shuttle.FuelLevel, queuedLaunch.DestinationTile.Layer))
+            if (!rangeInfo.CanLaunchWithCurrentFuel)
             {
-                return Wait("TransportPodNotEnoughFuel".Translate());
+                return Wait("BSL_WaitingForFuel".Translate(rangeInfo.Distance.ToString(), rangeInfo.CurrentFuelRangeText));
             }
 
             List<CompTransporter> transporters = new List<CompTransporter> { shuttle.TransporterComp };

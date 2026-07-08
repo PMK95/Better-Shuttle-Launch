@@ -12,6 +12,18 @@ namespace BetterShuttleLaunch.UI
     {
         public static List<FloatMenuOption> CreateForMapShuttle(Building_PassengerShuttle shuttle)
         {
+            if (PassengerShuttleLaunchQueueCommandUtility.HasQueuedLaunch(shuttle))
+            {
+                return new List<FloatMenuOption>
+                {
+                    CreateOption(
+                        "BSL_CancelQueuedLaunch".Translate(),
+                        () => PassengerShuttleLaunchQueueCommandUtility.CancelQueuedLaunch(shuttle),
+                        "BSL_CancelQueuedLaunchDesc".Translate(),
+                        null)
+                };
+            }
+
             List<FloatMenuOption> options = new List<FloatMenuOption>
             {
                 CreateOption(
@@ -33,6 +45,18 @@ namespace BetterShuttleLaunch.UI
         public static List<FloatMenuOption> CreateForCaravan(Caravan caravan)
         {
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
+            if (PassengerShuttleLaunchQueueCommandUtility.HasQueuedLaunch(caravan))
+            {
+                return new List<FloatMenuOption>
+                {
+                    CreateOption(
+                        "BSL_CancelQueuedLaunch".Translate(),
+                        () => PassengerShuttleLaunchQueueCommandUtility.CancelQueuedLaunch(caravan),
+                        "BSL_CancelQueuedLaunchDesc".Translate(),
+                        null)
+                };
+            }
+
             List<FloatMenuOption> options = new List<FloatMenuOption>
             {
                 CreateOption(

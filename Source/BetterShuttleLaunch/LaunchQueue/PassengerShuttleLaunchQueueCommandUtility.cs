@@ -15,6 +15,38 @@ namespace BetterShuttleLaunch.LaunchQueue
             return PassengerShuttleLaunchBridge.TryGetLaunchParts(shuttle, out _, out _, out disabledReason);
         }
 
+        public static bool HasQueuedLaunch(Building_PassengerShuttle shuttle)
+        {
+            return LaunchQueueGameComponent.Current?.IsQueued(shuttle) == true;
+        }
+
+        public static bool HasQueuedLaunch(Caravan caravan)
+        {
+            return LaunchQueueGameComponent.Current?.IsQueued(caravan) == true;
+        }
+
+        public static void CancelQueuedLaunch(Building_PassengerShuttle shuttle)
+        {
+            if (!HasQueuedLaunch(shuttle))
+            {
+                Messages.Message("BSL_NoQueuedLaunch".Translate(), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            LaunchQueueGameComponent.Current?.RemoveQueuedLaunch(shuttle, true);
+        }
+
+        public static void CancelQueuedLaunch(Caravan caravan)
+        {
+            if (!HasQueuedLaunch(caravan))
+            {
+                Messages.Message("BSL_NoQueuedLaunch".Translate(), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            LaunchQueueGameComponent.Current?.RemoveQueuedLaunch(caravan, true);
+        }
+
         public static bool CanQueueCaravanLaunchWhenReady(Caravan caravan, out string disabledReason)
         {
             disabledReason = null;
@@ -29,6 +61,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartLaunchWhenReadyFlow(Building_PassengerShuttle shuttle)
         {
+            if (RejectNewMapQueuedLaunchWhenAlreadyQueued(shuttle, false))
+            {
+                return;
+            }
+
             PassengerShuttleLaunchBridge.OpenLoadDialogThenRunAction(shuttle, () =>
             {
                 PassengerShuttleLaunchBridge.StartChoosingQueuedDestination(shuttle, (destinationTile, destinationLabel, arrivalAction) =>
@@ -40,6 +77,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartCaravanLaunchWhenReadyFlow(Caravan caravan)
         {
+            if (RejectNewCaravanQueuedLaunchWhenAlreadyQueued(caravan, false))
+            {
+                return;
+            }
+
             if (!CanQueueCaravanLaunchWhenReady(caravan, out string disabledReason))
             {
                 Messages.Message(disabledReason, MessageTypeDefOf.RejectInput, false);
@@ -55,6 +97,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartSettlementLaunchFlow(Building_PassengerShuttle shuttle)
         {
+            if (RejectNewMapQueuedLaunchWhenAlreadyQueued(shuttle, false))
+            {
+                return;
+            }
+
             if (!CanStartSettlementLaunchFlow(shuttle))
             {
                 Messages.Message("BSL_NoOtherSettlement".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -78,6 +125,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartCaravanSettlementLaunchFlow(Caravan caravan)
         {
+            if (RejectNewCaravanQueuedLaunchWhenAlreadyQueued(caravan, false))
+            {
+                return;
+            }
+
             if (!CanQueueCaravanLaunchWhenReady(caravan, out string disabledReason))
             {
                 Messages.Message(disabledReason, MessageTypeDefOf.RejectInput, false);
@@ -107,6 +159,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartReturnFlow(Building_PassengerShuttle shuttle)
         {
+            if (RejectNewMapQueuedLaunchWhenAlreadyQueued(shuttle, false))
+            {
+                return;
+            }
+
             if (!TryGetLastDepartureLocation(shuttle, out LastDepartureLocation location))
             {
                 Messages.Message("BSL_LastDepartureCellUnavailable".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -130,6 +187,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartCaravanReturnFlow(Caravan caravan)
         {
+            if (RejectNewCaravanQueuedLaunchWhenAlreadyQueued(caravan, false))
+            {
+                return;
+            }
+
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
             if (!TryGetLastDepartureLocation(shuttle, out LastDepartureLocation location))
             {
@@ -155,12 +217,13 @@ namespace BetterShuttleLaunch.LaunchQueue
         public static bool CanStartSettlementLaunchFlow(Building_PassengerShuttle shuttle)
         {
             return CanQueueLaunchWhenReady(shuttle, out _)
+                   && !HasQueuedLaunch(shuttle)
                    && SettlementDestinationFinder.FindOtherPlayerHomeMapParents(shuttle.Map?.Parent).Count > 0;
         }
 
         public static bool CanStartReturnFlow(Building_PassengerShuttle shuttle)
         {
-            return TryGetLastDepartureLocation(shuttle, out _);
+            return !HasQueuedLaunch(shuttle) && TryGetLastDepartureLocation(shuttle, out _);
         }
 
         public static void QueueMapShuttleLaunch(
@@ -170,6 +233,11 @@ namespace BetterShuttleLaunch.LaunchQueue
             string destinationLabel,
             TransportersArrivalAction arrivalAction)
         {
+            if (RejectNewMapQueuedLaunchWhenAlreadyQueued(shuttle, true))
+            {
+                return;
+            }
+
             if (arrivalAction == null || !destinationTile.Valid)
             {
                 PassengerShuttleLaunchBridge.StopWorldTargeting();
@@ -178,7 +246,7 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             PlanetTile originTile = shuttle?.Tile ?? default;
-            LaunchQueueGameComponent.Current?.AddOrReplaceQueuedLaunch(new QueuedPassengerShuttleLaunch(
+            LaunchQueueGameComponent.Current?.AddQueuedLaunchIfNoExistingQueue(new QueuedPassengerShuttleLaunch(
                 shuttle,
                 originTile,
                 destinationTile,
@@ -195,6 +263,11 @@ namespace BetterShuttleLaunch.LaunchQueue
             string destinationLabel,
             TransportersArrivalAction arrivalAction)
         {
+            if (RejectNewCaravanQueuedLaunchWhenAlreadyQueued(caravan, true))
+            {
+                return;
+            }
+
             if (arrivalAction == null || !destinationTile.Valid)
             {
                 PassengerShuttleLaunchBridge.StopWorldTargeting();
@@ -202,7 +275,7 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return;
             }
 
-            LaunchQueueGameComponent.Current?.AddOrReplaceQueuedLaunch(new QueuedPassengerShuttleLaunch(
+            LaunchQueueGameComponent.Current?.AddQueuedLaunchIfNoExistingQueue(new QueuedPassengerShuttleLaunch(
                 caravan,
                 shuttle,
                 caravan?.Tile ?? default,
@@ -214,6 +287,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         private static void StartSettlementLaunchToSelectedSettlement(Building_PassengerShuttle shuttle, MapParent destination)
         {
+            if (RejectNewMapQueuedLaunchWhenAlreadyQueued(shuttle, false))
+            {
+                return;
+            }
+
             PassengerShuttleLaunchBridge.OpenLoadDialogThenRunAction(shuttle, () =>
             {
                 if (destination == null)
@@ -222,15 +300,20 @@ namespace BetterShuttleLaunch.LaunchQueue
                     return;
                 }
 
-                PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetForQueuedLaunch(
+                PassengerShuttleLaunchBridge.StartChoosingSpecificLandingCellForQueuedLaunch(
                     shuttle,
-                    new GlobalTargetInfo(destination),
+                    destination,
                     (tile, action) => QueueMapShuttleLaunch(shuttle, tile, GetOriginLabel(shuttle), destination.LabelCap, action));
             });
         }
 
         private static void StartCaravanSettlementLaunchToSelectedSettlement(Caravan caravan, MapParent destination)
         {
+            if (RejectNewCaravanQueuedLaunchWhenAlreadyQueued(caravan, false))
+            {
+                return;
+            }
+
             if (destination == null)
             {
                 Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -238,14 +321,19 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
-            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetFromCaravanForQueuedLaunch(
+            PassengerShuttleLaunchBridge.StartChoosingSpecificLandingCellFromCaravanForQueuedLaunch(
                 caravan,
-                new GlobalTargetInfo(destination),
+                destination,
                 (tile, action) => QueueCaravanLaunch(caravan, shuttle, tile, GetOriginLabel(caravan), destination.LabelCap, action));
         }
 
         public static void StartReturnWithLandingSelection(Building_PassengerShuttle shuttle, MapParent destination)
         {
+            if (RejectNewMapQueuedLaunchWhenAlreadyQueued(shuttle, false))
+            {
+                return;
+            }
+
             if (destination == null)
             {
                 Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -254,15 +342,20 @@ namespace BetterShuttleLaunch.LaunchQueue
 
             PassengerShuttleLaunchBridge.OpenLoadDialogThenRunAction(shuttle, () =>
             {
-                PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetForQueuedLaunch(
+                PassengerShuttleLaunchBridge.StartChoosingSpecificLandingCellForQueuedLaunch(
                     shuttle,
-                    new GlobalTargetInfo(destination),
+                    destination,
                     (tile, action) => QueueMapShuttleLaunch(shuttle, tile, GetOriginLabel(shuttle), destination.LabelCap, action));
             });
         }
 
         public static void StartCaravanReturnWithLandingSelection(Caravan caravan, MapParent destination)
         {
+            if (RejectNewCaravanQueuedLaunchWhenAlreadyQueued(caravan, false))
+            {
+                return;
+            }
+
             if (destination == null)
             {
                 Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
@@ -270,14 +363,19 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
-            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetFromCaravanForQueuedLaunch(
+            PassengerShuttleLaunchBridge.StartChoosingSpecificLandingCellFromCaravanForQueuedLaunch(
                 caravan,
-                new GlobalTargetInfo(destination),
+                destination,
                 (tile, action) => QueueCaravanLaunch(caravan, shuttle, tile, GetOriginLabel(caravan), destination.LabelCap, action));
         }
 
         public static void StartReturnToLastDepartureCell(Building_PassengerShuttle shuttle, LastDepartureLocation location)
         {
+            if (RejectNewMapQueuedLaunchWhenAlreadyQueued(shuttle, false))
+            {
+                return;
+            }
+
             PassengerShuttleLaunchBridge.OpenLoadDialogThenRunAction(shuttle, () =>
             {
                 if (!PassengerShuttleLaunchBridge.TryCreateSpecificLandingActionForQueuedLaunch(
@@ -299,6 +397,11 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartCaravanReturnToLastDepartureCell(Caravan caravan, LastDepartureLocation location)
         {
+            if (RejectNewCaravanQueuedLaunchWhenAlreadyQueued(caravan, false))
+            {
+                return;
+            }
+
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
             if (!PassengerShuttleLaunchBridge.TryCreateSpecificLandingActionForCaravanQueuedLaunch(
                     caravan,
@@ -339,6 +442,38 @@ namespace BetterShuttleLaunch.LaunchQueue
         private static string GetDestinationLabel(PlanetTile destinationTile, TransportersArrivalAction arrivalAction)
         {
             return destinationTile.ToString();
+        }
+
+        private static bool RejectNewMapQueuedLaunchWhenAlreadyQueued(Building_PassengerShuttle shuttle, bool stopWorldTargeting)
+        {
+            if (!HasQueuedLaunch(shuttle))
+            {
+                return false;
+            }
+
+            if (stopWorldTargeting)
+            {
+                PassengerShuttleLaunchBridge.StopWorldTargeting();
+            }
+
+            Messages.Message("BSL_QueuedLaunchAlreadyExists".Translate(), shuttle, MessageTypeDefOf.RejectInput, false);
+            return true;
+        }
+
+        private static bool RejectNewCaravanQueuedLaunchWhenAlreadyQueued(Caravan caravan, bool stopWorldTargeting)
+        {
+            if (!HasQueuedLaunch(caravan))
+            {
+                return false;
+            }
+
+            if (stopWorldTargeting)
+            {
+                PassengerShuttleLaunchBridge.StopWorldTargeting();
+            }
+
+            Messages.Message("BSL_QueuedLaunchAlreadyExists".Translate(), caravan, MessageTypeDefOf.RejectInput, false);
+            return true;
         }
 
         private static FloatMenuOption CreateWorldTargetMenuOption(string label, Action action, string tooltip, WorldObject worldObject)

@@ -23,6 +23,7 @@
   <BSL_LaunchQueued>발사 예약됨</BSL_LaunchQueued>
   <BSL_WaitingForLoading>적재 대기 중</BSL_WaitingForLoading>
   <BSL_WaitingForCooldown>재사용 대기시간 대기 중: {0}</BSL_WaitingForCooldown>
+  <BSL_WaitingForFuel>연료 보급 대기 중: 거리 {0}, 현재 연료 사거리 {1}</BSL_WaitingForFuel>
   <BSL_AutoLaunchFailed>자동 셔틀 발사가 취소되었습니다: {0}</BSL_AutoLaunchFailed>
   <BSL_DestinationInvalid>목적지가 더 이상 유효하지 않습니다.</BSL_DestinationInvalid>
   <BSL_ShuttleUnavailable>셔틀을 더 이상 사용할 수 없습니다.</BSL_ShuttleUnavailable>
@@ -36,6 +37,7 @@
   <BSL_LoadShuttleBeforeImmediateLaunch>즉시 발사하려면 먼저 적재 설정을 완료해야 합니다.</BSL_LoadShuttleBeforeImmediateLaunch>
   <BSL_LastDepartureCellUnavailable>마지막 출발 위치를 사용할 수 없습니다.</BSL_LastDepartureCellUnavailable>
   <BSL_NoQueuedLaunch>예약된 발사가 없습니다.</BSL_NoQueuedLaunch>
+  <BSL_QueuedLaunchAlreadyExists>이미 예약된 발사가 있습니다. 새 발사를 예약하려면 먼저 취소하세요.</BSL_QueuedLaunchAlreadyExists>
   <BSL_QueuedForDestination>발사를 예약했습니다. 목적지: {0}</BSL_QueuedForDestination>
   <BSL_QueuedLaunchCanceled>셔틀 발사 예약을 취소했습니다.</BSL_QueuedLaunchCanceled>
   <BSL_LoadingCanceled>적재가 취소되었습니다.</BSL_LoadingCanceled>
@@ -54,5 +56,8 @@
   <BSL_SettingShowLaunchStatusInInspectPane>발사 상태를 정보창에 표시</BSL_SettingShowLaunchStatusInInspectPane>
   <BSL_SettingShowLaunchStatusInInspectPaneDesc>바닐라 발사 버튼의 사용 불가 사유를 왼쪽 아래 정보창에도 표시합니다.</BSL_SettingShowLaunchStatusInInspectPaneDesc>
   <BSL_QueuedDestinationTargetingLabel>예약 발사 목적지: {0}</BSL_QueuedDestinationTargetingLabel>
-  <BSL_CannotOpenWorldMapForDestination>세계 지도를 열 수 없어 목적지 선택을 시작하지 못했습니다.</BSL_CannotOpenWorldMapForDestination>
+  <BSL_QueuedDestinationFuelReady>예약 발사 목적지: {0} (거리 {1}, 현재 연료 사거리 {2})</BSL_QueuedDestinationFuelReady>
+  <BSL_QueuedDestinationFuelWaiting>예약 발사 목적지: {0} - 현재 연료 부족 (거리 {1}, 현재 연료 사거리 {2}). 연료 보급 후 발사합니다.</BSL_QueuedDestinationFuelWaiting>
+  <BSL_RangeUnlimited>무제한</BSL_RangeUnlimited>
+  <BSL_DestinationTargetingStartFailed>예약 발사 목적지 선택을 시작하지 못했습니다.</BSL_DestinationTargetingStartFailed>
 </LanguageData>

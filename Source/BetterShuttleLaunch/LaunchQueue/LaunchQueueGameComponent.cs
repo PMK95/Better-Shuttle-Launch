@@ -69,7 +69,7 @@ namespace BetterShuttleLaunch.LaunchQueue
             return null;
         }
 
-        public void AddOrReplaceQueuedLaunch(QueuedPassengerShuttleLaunch queuedLaunch)
+        public void AddQueuedLaunchIfNoExistingQueue(QueuedPassengerShuttleLaunch queuedLaunch)
         {
             if (queuedLaunch?.Shuttle == null)
             {
@@ -77,14 +77,10 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return;
             }
 
-            if (queuedLaunch.Caravan != null)
+            if (FindQueuedLaunch(queuedLaunch.Shuttle) != null || (queuedLaunch.Caravan != null && FindQueuedLaunch(queuedLaunch.Caravan) != null))
             {
-                RemoveQueuedLaunch(queuedLaunch.Shuttle, false);
-                RemoveQueuedLaunch(queuedLaunch.Caravan, false);
-            }
-            else
-            {
-                RemoveQueuedLaunch(queuedLaunch.Shuttle, false);
+                Messages.Message("BSL_QueuedLaunchAlreadyExists".Translate(), queuedLaunch.Shuttle, MessageTypeDefOf.RejectInput, false);
+                return;
             }
 
             queuedLaunches.Add(queuedLaunch);

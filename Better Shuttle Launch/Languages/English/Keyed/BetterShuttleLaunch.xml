@@ -23,6 +23,7 @@
   <BSL_LaunchQueued>Launch queued</BSL_LaunchQueued>
   <BSL_WaitingForLoading>Waiting for loading</BSL_WaitingForLoading>
   <BSL_WaitingForCooldown>Waiting for cooldown: {0}</BSL_WaitingForCooldown>
+  <BSL_WaitingForFuel>Waiting for fuel: distance {0}, current range {1}</BSL_WaitingForFuel>
   <BSL_AutoLaunchFailed>Automatic shuttle launch was cancelled: {0}</BSL_AutoLaunchFailed>
   <BSL_DestinationInvalid>destination is no longer valid</BSL_DestinationInvalid>
   <BSL_ShuttleUnavailable>shuttle is no longer available</BSL_ShuttleUnavailable>
@@ -36,6 +37,7 @@
   <BSL_LoadShuttleBeforeImmediateLaunch>Configure loading before launching immediately.</BSL_LoadShuttleBeforeImmediateLaunch>
   <BSL_LastDepartureCellUnavailable>The last departure spot cannot be used.</BSL_LastDepartureCellUnavailable>
   <BSL_NoQueuedLaunch>No scheduled launch is queued.</BSL_NoQueuedLaunch>
+  <BSL_QueuedLaunchAlreadyExists>A scheduled launch already exists. Cancel it before scheduling a new launch.</BSL_QueuedLaunchAlreadyExists>
   <BSL_QueuedForDestination>Launch queued. Destination: {0}</BSL_QueuedForDestination>
   <BSL_QueuedLaunchCanceled>Scheduled shuttle launch was cancelled.</BSL_QueuedLaunchCanceled>
   <BSL_LoadingCanceled>loading was cancelled</BSL_LoadingCanceled>
@@ -54,5 +56,8 @@
   <BSL_SettingShowLaunchStatusInInspectPane>Show launch status in the inspect pane</BSL_SettingShowLaunchStatusInInspectPane>
   <BSL_SettingShowLaunchStatusInInspectPaneDesc>Shows the same vanilla launch-blocking reason in the lower-left inspect pane.</BSL_SettingShowLaunchStatusInInspectPaneDesc>
   <BSL_QueuedDestinationTargetingLabel>Scheduled launch destination: {0}</BSL_QueuedDestinationTargetingLabel>
-  <BSL_CannotOpenWorldMapForDestination>Could not open the world map, so destination selection could not start.</BSL_CannotOpenWorldMapForDestination>
+  <BSL_QueuedDestinationFuelReady>Scheduled launch destination: {0} (distance {1}, current fuel range {2})</BSL_QueuedDestinationFuelReady>
+  <BSL_QueuedDestinationFuelWaiting>Scheduled launch destination: {0} - not enough fuel yet (distance {1}, current fuel range {2}). It will launch after refueling.</BSL_QueuedDestinationFuelWaiting>
+  <BSL_RangeUnlimited>unlimited</BSL_RangeUnlimited>
+  <BSL_DestinationTargetingStartFailed>Could not start destination selection for the scheduled launch.</BSL_DestinationTargetingStartFailed>
 </LanguageData>
