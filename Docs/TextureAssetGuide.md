@@ -93,7 +93,6 @@ Better Shuttle Launch/
 | `Fuel.png` | 32 x 32 | 14 x 14 | 1:1 | 연료 |
 | `Health.png` | 32 x 32 | 14 x 14 | 1:1 | 내구도 |
 | `Mass.png` | 32 x 32 | 14 x 14 | 1:1 | 무게 |
-| `Passengers.png` | 32 x 32 | 14 x 14 | 1:1 | 탑승 인원 |
 
 권장 스타일:
 - 14 x 14로 표시되므로 복잡한 디테일은 피한다.

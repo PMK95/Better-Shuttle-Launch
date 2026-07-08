@@ -29,8 +29,8 @@ namespace BetterShuttleLaunch.Settings
             Scribe_Values.Look(ref FocusOnShuttleArrival, "focusOnShuttleArrival", true);
             Scribe_Values.Look(ref TrackerWindowX, "trackerWindowX", -1f);
             Scribe_Values.Look(ref TrackerWindowY, "trackerWindowY", 80f);
-            Scribe_Values.Look(ref TrackerWindowWidth, "trackerWindowWidth", 520f);
-            Scribe_Values.Look(ref TrackerWindowHeight, "trackerWindowHeight", 300f);
+            Scribe_Values.Look(ref TrackerWindowWidth, "trackerWindowWidth", BetterShuttleLaunchUiConfigDef.ActiveConfig.trackerDefaultWidth);
+            Scribe_Values.Look(ref TrackerWindowHeight, "trackerWindowHeight", BetterShuttleLaunchUiConfigDef.ActiveConfig.trackerDefaultHeight);
             Scribe_Values.Look(ref TrackerWindowMinimized, "trackerWindowMinimized", false);
             Scribe_Values.Look(ref TrackerShowOnlyCurrentMapShuttles, "trackerShowOnlyCurrentMapShuttles", false);
         }
@@ -46,8 +46,8 @@ namespace BetterShuttleLaunch.Settings
             FocusOnShuttleArrival = true;
             TrackerWindowX = -1f;
             TrackerWindowY = 80f;
-            TrackerWindowWidth = 520f;
-            TrackerWindowHeight = 300f;
+            TrackerWindowWidth = BetterShuttleLaunchUiConfigDef.ActiveConfig.trackerDefaultWidth;
+            TrackerWindowHeight = BetterShuttleLaunchUiConfigDef.ActiveConfig.trackerDefaultHeight;
             TrackerWindowMinimized = false;
             TrackerShowOnlyCurrentMapShuttles = false;
         }

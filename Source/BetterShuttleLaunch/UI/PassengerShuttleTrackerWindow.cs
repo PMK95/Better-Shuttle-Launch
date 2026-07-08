@@ -12,17 +12,19 @@ namespace BetterShuttleLaunch.UI
 {
     public class PassengerShuttleTrackerWindow : Window
     {
-        private const float DefaultWidth = 520f;
-        private const float DefaultHeight = 300f;
-        private const float MinWidth = 460f;
-        private const float MinHeight = 180f;
-        private const float MaxWidth = 720f;
-        private const float MaxHeight = 600f;
-        private const float MinimizedHeight = 38f;
-        private const int EstimatedShuttleTravelTicksPerTile = 120;
         private Vector2 scrollPosition;
         private bool dragging;
         private bool resizing;
+
+        private static BetterShuttleLaunchUiConfigDef UiConfig => BetterShuttleLaunchUiConfigDef.ActiveConfig;
+        private static float MinWidth => UiConfig.trackerMinWidth;
+        private static float MinHeight => UiConfig.trackerMinHeight;
+        private static float MaxWidth => UiConfig.trackerMaxWidth;
+        private static float MaxHeight => UiConfig.trackerMaxHeight;
+        private static float MinimizedHeight => UiConfig.trackerMinimizedHeight;
+        private static float RowStrideHeight => UiConfig.trackerRowStrideHeight;
+        private static float RowDrawHeight => UiConfig.trackerRowDrawHeight;
+        private static int EstimatedShuttleTravelTicksPerTile => Mathf.Max(1, UiConfig.estimatedShuttleTravelTicksPerTile);
 
         public PassengerShuttleTrackerWindow()
         {
@@ -104,11 +106,11 @@ namespace BetterShuttleLaunch.UI
             }
 
             Rect outRect = new Rect(0f, 36f, inRect.width, inRect.height - 36f);
-            Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, rows.Count * 66f);
+            Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, rows.Count * RowStrideHeight);
             Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect);
             for (int i = 0; i < rows.Count; i++)
             {
-                DrawRow(new Rect(0f, i * 66f, viewRect.width, 60f), rows[i]);
+                DrawRow(new Rect(0f, i * RowStrideHeight, viewRect.width, RowDrawHeight), rows[i]);
             }
 
             Widgets.EndScrollView();

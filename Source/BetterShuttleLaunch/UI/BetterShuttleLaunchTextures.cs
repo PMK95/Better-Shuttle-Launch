@@ -1,4 +1,5 @@
 using BetterShuttleLaunch.LaunchQueue;
+using BetterShuttleLaunch.Settings;
 using UnityEngine;
 using Verse;
 
@@ -6,38 +7,37 @@ namespace BetterShuttleLaunch.UI
 {
     public static class BetterShuttleLaunchTextures
     {
-        public static readonly Texture2D CommandLaunchWhenReady = Load("UI/Commands/BSL_LaunchWhenReady");
-        public static readonly Texture2D CommandLaunchToSettlement = Load("UI/Commands/BSL_LaunchToSettlement");
-        public static readonly Texture2D CommandReturn = Load("UI/Commands/BSL_Return");
-        public static readonly Texture2D CommandCancelLaunch = Load("UI/Commands/BSL_CancelLaunch");
-        public static readonly Texture2D CommandOpenTracker = Load("UI/Commands/BSL_OpenTracker");
+        public static readonly Texture2D CommandLaunchWhenReady = Load(Paths.commandLaunchWhenReady, BetterShuttleLaunchTexturePathConfig.Fallback.commandLaunchWhenReady);
+        public static readonly Texture2D CommandLaunchToSettlement = Load(Paths.commandLaunchToSettlement, BetterShuttleLaunchTexturePathConfig.Fallback.commandLaunchToSettlement);
+        public static readonly Texture2D CommandReturn = Load(Paths.commandReturn, BetterShuttleLaunchTexturePathConfig.Fallback.commandReturn);
+        public static readonly Texture2D CommandCancelLaunch = Load(Paths.commandCancelLaunch, BetterShuttleLaunchTexturePathConfig.Fallback.commandCancelLaunch);
+        public static readonly Texture2D CommandOpenTracker = Load(Paths.commandOpenTracker, BetterShuttleLaunchTexturePathConfig.Fallback.commandOpenTracker);
 
-        public static readonly Texture2D TrackerPanelBackground = Load("UI/Tracker/Panel_Background");
-        public static readonly Texture2D TrackerPanelHeader = Load("UI/Tracker/Panel_Header");
-        public static readonly Texture2D TrackerRowBackground = Load("UI/Tracker/Row_Background");
-        public static readonly Texture2D TrackerProgressRail = Load("UI/Tracker/Progress_Rail");
-        public static readonly Texture2D TrackerProgressFill = Load("UI/Tracker/Progress_Fill");
-        public static readonly Texture2D TrackerShuttleMarker = Load("UI/Tracker/Shuttle_Marker");
-        public static readonly Texture2D TrackerButtonNormal = Load("UI/Tracker/Button_Normal");
-        public static readonly Texture2D TrackerButtonHover = Load("UI/Tracker/Button_Hover");
-        public static readonly Texture2D TrackerButtonDisabled = Load("UI/Tracker/Button_Disabled");
-        public static readonly Texture2D TrackerFilterLocal = Load("UI/Tracker/Filter_Local");
-        public static readonly Texture2D TrackerEndpointEmpty = Load("UI/Tracker/Endpoint_Empty");
-        public static readonly Texture2D TrackerEndpointMap = Load("UI/Tracker/Endpoint_Map");
-        public static readonly Texture2D TrackerEndpointFaction = Load("UI/Tracker/Endpoint_Faction");
+        public static readonly Texture2D TrackerPanelBackground = Load(Paths.trackerPanelBackground, BetterShuttleLaunchTexturePathConfig.Fallback.trackerPanelBackground);
+        public static readonly Texture2D TrackerPanelHeader = Load(Paths.trackerPanelHeader, BetterShuttleLaunchTexturePathConfig.Fallback.trackerPanelHeader);
+        public static readonly Texture2D TrackerRowBackground = Load(Paths.trackerRowBackground, BetterShuttleLaunchTexturePathConfig.Fallback.trackerRowBackground);
+        public static readonly Texture2D TrackerProgressRail = Load(Paths.trackerProgressRail, BetterShuttleLaunchTexturePathConfig.Fallback.trackerProgressRail);
+        public static readonly Texture2D TrackerProgressFill = Load(Paths.trackerProgressFill, BetterShuttleLaunchTexturePathConfig.Fallback.trackerProgressFill);
+        public static readonly Texture2D TrackerShuttleMarker = Load(Paths.trackerShuttleMarker, BetterShuttleLaunchTexturePathConfig.Fallback.trackerShuttleMarker);
+        public static readonly Texture2D TrackerButtonNormal = Load(Paths.trackerButtonNormal, BetterShuttleLaunchTexturePathConfig.Fallback.trackerButtonNormal);
+        public static readonly Texture2D TrackerButtonHover = Load(Paths.trackerButtonHover, BetterShuttleLaunchTexturePathConfig.Fallback.trackerButtonHover);
+        public static readonly Texture2D TrackerButtonDisabled = Load(Paths.trackerButtonDisabled, BetterShuttleLaunchTexturePathConfig.Fallback.trackerButtonDisabled);
+        public static readonly Texture2D TrackerFilterLocal = Load(Paths.trackerFilterLocal, BetterShuttleLaunchTexturePathConfig.Fallback.trackerFilterLocal);
+        public static readonly Texture2D TrackerEndpointEmpty = Load(Paths.trackerEndpointEmpty, BetterShuttleLaunchTexturePathConfig.Fallback.trackerEndpointEmpty);
+        public static readonly Texture2D TrackerEndpointMap = Load(Paths.trackerEndpointMap, BetterShuttleLaunchTexturePathConfig.Fallback.trackerEndpointMap);
+        public static readonly Texture2D TrackerEndpointFaction = Load(Paths.trackerEndpointFaction, BetterShuttleLaunchTexturePathConfig.Fallback.trackerEndpointFaction);
 
-        public static readonly Texture2D StatusIdle = Load("UI/Status/Idle");
-        public static readonly Texture2D StatusLoading = Load("UI/Status/Loading");
-        public static readonly Texture2D StatusWaiting = Load("UI/Status/Waiting");
-        public static readonly Texture2D StatusReady = Load("UI/Status/Ready");
-        public static readonly Texture2D StatusInFlight = Load("UI/Status/InFlight");
-        public static readonly Texture2D StatusArrived = Load("UI/Status/Arrived");
-        public static readonly Texture2D StatusFailed = Load("UI/Status/Failed");
+        public static readonly Texture2D StatusIdle = Load(Paths.statusIdle, BetterShuttleLaunchTexturePathConfig.Fallback.statusIdle);
+        public static readonly Texture2D StatusLoading = Load(Paths.statusLoading, BetterShuttleLaunchTexturePathConfig.Fallback.statusLoading);
+        public static readonly Texture2D StatusWaiting = Load(Paths.statusWaiting, BetterShuttleLaunchTexturePathConfig.Fallback.statusWaiting);
+        public static readonly Texture2D StatusReady = Load(Paths.statusReady, BetterShuttleLaunchTexturePathConfig.Fallback.statusReady);
+        public static readonly Texture2D StatusInFlight = Load(Paths.statusInFlight, BetterShuttleLaunchTexturePathConfig.Fallback.statusInFlight);
+        public static readonly Texture2D StatusArrived = Load(Paths.statusArrived, BetterShuttleLaunchTexturePathConfig.Fallback.statusArrived);
+        public static readonly Texture2D StatusFailed = Load(Paths.statusFailed, BetterShuttleLaunchTexturePathConfig.Fallback.statusFailed);
 
-        public static readonly Texture2D BadgeFuel = Load("UI/Badges/Fuel");
-        public static readonly Texture2D BadgeHealth = Load("UI/Badges/Health");
-        public static readonly Texture2D BadgeMass = Load("UI/Badges/Mass");
-        public static readonly Texture2D BadgePassengers = Load("UI/Badges/Passengers");
+        public static readonly Texture2D BadgeFuel = Load(Paths.badgeFuel, BetterShuttleLaunchTexturePathConfig.Fallback.badgeFuel);
+        public static readonly Texture2D BadgeHealth = Load(Paths.badgeHealth, BetterShuttleLaunchTexturePathConfig.Fallback.badgeHealth);
+        public static readonly Texture2D BadgeMass = Load(Paths.badgeMass, BetterShuttleLaunchTexturePathConfig.Fallback.badgeMass);
 
         public static Texture2D GetStatusIcon(PassengerShuttleFlightState state)
         {
@@ -76,9 +76,11 @@ namespace BetterShuttleLaunch.UI
             return true;
         }
 
-        private static Texture2D Load(string path)
+        private static BetterShuttleLaunchTexturePathConfig Paths => BetterShuttleLaunchUiConfigDef.ActiveConfig.TexturePaths;
+
+        private static Texture2D Load(string path, string fallbackPath)
         {
-            return ContentFinder<Texture2D>.Get(path, false);
+            return ContentFinder<Texture2D>.Get(path.NullOrEmpty() ? fallbackPath : path, false);
         }
     }
 }
