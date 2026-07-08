@@ -401,11 +401,25 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         private static bool HasTrackedFlightArrived(TrackedPassengerShuttleFlight trackedFlight)
         {
+            if (trackedFlight?.Shuttle == null || !trackedFlight.DestinationTile.Valid)
+            {
+                return false;
+            }
+
             MapParent mapParent = trackedFlight.Shuttle.Map?.Parent;
-            return trackedFlight.DestinationTile.Valid
-                   && trackedFlight.Shuttle.Spawned
-                   && mapParent != null
-                   && mapParent.Tile == trackedFlight.DestinationTile;
+            if (trackedFlight.Shuttle.Spawned && mapParent != null && mapParent.Tile == trackedFlight.DestinationTile)
+            {
+                return true;
+            }
+
+            Caravan caravan = GetTrackedOrCurrentCaravan(trackedFlight);
+            if (caravan == null || caravan.Destroyed)
+            {
+                return false;
+            }
+
+            trackedFlight.Caravan = caravan;
+            return caravan.Tile.Valid && caravan.Tile == trackedFlight.DestinationTile;
         }
 
         private static void ApplyArrivalOptionsOnce(TrackedPassengerShuttleFlight trackedFlight)
@@ -428,6 +442,13 @@ namespace BetterShuttleLaunch.LaunchQueue
             if (shuttle != null && !shuttle.Destroyed && shuttle.Spawned)
             {
                 CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(shuttle), CameraJumper.MovementMode.Pan);
+                return;
+            }
+
+            Caravan caravan = GetTrackedOrCurrentCaravan(trackedFlight);
+            if (caravan != null && !caravan.Destroyed)
+            {
+                CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(caravan), CameraJumper.MovementMode.Pan);
                 return;
             }
 
@@ -468,6 +489,37 @@ namespace BetterShuttleLaunch.LaunchQueue
                 if (worldObject != null && !worldObject.Destroyed)
                 {
                     return worldObject;
+                }
+            }
+
+            return null;
+        }
+
+        private static Caravan GetTrackedOrCurrentCaravan(TrackedPassengerShuttleFlight trackedFlight)
+        {
+            if (trackedFlight?.Caravan != null
+                && !trackedFlight.Caravan.Destroyed
+                && trackedFlight.Caravan.Shuttle == trackedFlight.Shuttle)
+            {
+                return trackedFlight.Caravan;
+            }
+
+            return FindPlayerCaravanContainingShuttle(trackedFlight?.Shuttle);
+        }
+
+        private static Caravan FindPlayerCaravanContainingShuttle(Building_PassengerShuttle shuttle)
+        {
+            if (shuttle == null || Find.WorldObjects?.Caravans == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < Find.WorldObjects.Caravans.Count; i++)
+            {
+                Caravan caravan = Find.WorldObjects.Caravans[i];
+                if (caravan != null && !caravan.Destroyed && caravan.Faction == Faction.OfPlayer && caravan.Shuttle == shuttle)
+                {
+                    return caravan;
                 }
             }
 

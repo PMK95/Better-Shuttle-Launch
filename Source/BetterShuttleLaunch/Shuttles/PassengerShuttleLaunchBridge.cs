@@ -107,6 +107,45 @@ namespace BetterShuttleLaunch.Shuttles
             launchable.StartChoosingDestination(destinationChosen);
         }
 
+        public static void StartChoosingQueuedDestination(Building_PassengerShuttle shuttle, Action<PlanetTile, string, TransportersArrivalAction> destinationChosen)
+        {
+            if (!TryGetLaunchParts(shuttle, out CompLaunchable launchable, out _, out string failReason))
+            {
+                Messages.Message(failReason, MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            PlanetTile originTile = shuttle.Tile;
+            BeginQueuedWorldTargeting(
+                originTile,
+                launchable,
+                target =>
+                {
+                    QueueFormCaravanDestination(target, destinationChosen);
+                    StopWorldTargeting();
+                });
+        }
+
+        public static void StartChoosingQueuedDestinationFromCaravan(Caravan caravan, Action<PlanetTile, string, TransportersArrivalAction> destinationChosen)
+        {
+            Building_PassengerShuttle shuttle = caravan?.Shuttle;
+            CompLaunchable launchable = shuttle?.LaunchableComp;
+            if (caravan == null || caravan.Destroyed || shuttle == null || launchable == null)
+            {
+                Messages.Message("BSL_ShuttleUnavailable".Translate(), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            BeginQueuedWorldTargeting(
+                caravan.Tile,
+                launchable,
+                target =>
+                {
+                    QueueFormCaravanDestination(target, destinationChosen);
+                    StopWorldTargeting();
+                });
+        }
+
         public static bool TryChooseSpecificLandingCell(
             Building_PassengerShuttle shuttle,
             MapParent destination,
@@ -250,6 +289,46 @@ namespace BetterShuttleLaunch.Shuttles
                 launchable);
         }
 
+        public static bool TryChooseSpecificWorldTargetForQueuedLaunch(Building_PassengerShuttle shuttle, GlobalTargetInfo target, Action<PlanetTile, TransportersArrivalAction> launchAction)
+        {
+            if (!TryGetLaunchParts(shuttle, out CompLaunchable launchable, out CompTransporter transporter, out string failReason))
+            {
+                Messages.Message(failReason, MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+
+            if (!target.IsValid || !target.Tile.Valid)
+            {
+                Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+
+            List<CompTransporter> transportersInGroup = transporter.TransportersInGroup(shuttle.Map);
+            if (transportersInGroup == null)
+            {
+                Messages.Message("BSL_LoadingCanceled".Translate(), MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+
+            bool accepted = CompLaunchable.ChoseWorldTarget(
+                target,
+                shuttle.Tile,
+                transportersInGroup,
+                launchable.MaxLaunchDistanceEver(target.Tile.Layer),
+                (tile, action) =>
+                {
+                    StopWorldTargeting();
+                    launchAction(tile, action);
+                },
+                launchable);
+            if (!accepted)
+            {
+                StopWorldTargeting();
+            }
+
+            return accepted;
+        }
+
         public static bool TryChooseSpecificWorldTargetFromCaravan(Caravan caravan, GlobalTargetInfo target, Action<PlanetTile, TransportersArrivalAction> destinationChosen)
         {
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
@@ -275,6 +354,43 @@ namespace BetterShuttleLaunch.Shuttles
                 destinationChosen,
                 launchable,
                 shuttle.FuelLevel);
+        }
+
+        public static bool TryChooseSpecificWorldTargetFromCaravanForQueuedLaunch(Caravan caravan, GlobalTargetInfo target, Action<PlanetTile, TransportersArrivalAction> destinationChosen)
+        {
+            Building_PassengerShuttle shuttle = caravan?.Shuttle;
+            CompLaunchable launchable = shuttle?.LaunchableComp;
+            CompTransporter transporter = shuttle?.TransporterComp;
+            if (caravan == null || shuttle == null || launchable == null || transporter == null)
+            {
+                Messages.Message("BSL_ShuttleUnavailable".Translate(), MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+
+            if (!target.IsValid || !target.Tile.Valid)
+            {
+                Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
+                return false;
+            }
+
+            bool accepted = CompLaunchable.ChoseWorldTarget(
+                target,
+                caravan.Tile,
+                new List<CompTransporter> { transporter },
+                launchable.MaxLaunchDistanceEver(target.Tile.Layer),
+                (tile, action) =>
+                {
+                    StopWorldTargeting();
+                    destinationChosen(tile, action);
+                },
+                launchable,
+                shuttle.FuelLevel);
+            if (!accepted)
+            {
+                StopWorldTargeting();
+            }
+
+            return accepted;
         }
 
         public static bool TryCreateSpecificLandingActionForQueuedLaunch(
@@ -549,6 +665,119 @@ namespace BetterShuttleLaunch.Shuttles
             }
 
             return true;
+        }
+
+        private static void BeginQueuedWorldTargeting(PlanetTile originTile, CompLaunchable launchable, Action<GlobalTargetInfo> targetChosen)
+        {
+            if (Find.WorldTargeter == null)
+            {
+                Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            Find.MainTabsRoot?.SetCurrentTab(MainButtonDefOf.World, true);
+            Find.WorldTargeter.BeginTargeting(
+                target =>
+                {
+                    if (!CanSelectQueuedWorldTarget(originTile, launchable, target, out string disabledReason))
+                    {
+                        Messages.Message(disabledReason, MessageTypeDefOf.RejectInput, false);
+                        StopWorldTargeting();
+                        return true;
+                    }
+
+                    targetChosen(target);
+                    return true;
+                },
+                true,
+                CompLaunchable.LaunchCommandTex,
+                false,
+                null,
+                target => GetQueuedTargetingLabel(originTile, launchable, target),
+                target => CanSelectQueuedWorldTarget(originTile, launchable, target, out _),
+                originTile,
+                true);
+        }
+
+        private static TaggedString GetQueuedTargetingLabel(PlanetTile originTile, CompLaunchable launchable, GlobalTargetInfo target)
+        {
+            if (!CanSelectQueuedWorldTarget(originTile, launchable, target, out string disabledReason))
+            {
+                return disabledReason;
+            }
+
+            return "BSL_QueuedDestinationTargetingLabel".Translate(GetWorldTargetLabel(target));
+        }
+
+        private static bool CanSelectQueuedWorldTarget(PlanetTile originTile, CompLaunchable launchable, GlobalTargetInfo target, out string disabledReason)
+        {
+            disabledReason = null;
+            if (!target.IsValid || !target.Tile.Valid)
+            {
+                disabledReason = "BSL_DestinationInvalid".Translate();
+                return false;
+            }
+
+            int maxLaunchDistance = launchable.MaxLaunchDistanceEver(target.Tile.Layer);
+            int distance = Find.WorldGrid.TraversalDistanceBetween(originTile, target.Tile, true, int.MaxValue, true);
+            if (maxLaunchDistance >= 0 && distance > maxLaunchDistance)
+            {
+                disabledReason = "TransportPodDestinationBeyondMaximumRange".Translate();
+                return false;
+            }
+
+            return true;
+        }
+
+        private static void QueueFormCaravanDestination(GlobalTargetInfo target, Action<PlanetTile, string, TransportersArrivalAction> destinationChosen)
+        {
+            PlanetTile destinationTile = target.Tile;
+            if (!destinationTile.Valid)
+            {
+                Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
+                return;
+            }
+
+            destinationChosen(destinationTile, GetWorldTargetLabel(target), new TransportersArrivalAction_FormCaravan("MessageTransportPodsArrived"));
+        }
+
+        private static string GetWorldTargetLabel(GlobalTargetInfo target)
+        {
+            if (target.HasWorldObject && target.WorldObject != null && !target.WorldObject.Destroyed)
+            {
+                return target.WorldObject.LabelCap;
+            }
+
+            if (target.Tile.Valid && Find.WorldObjects != null)
+            {
+                WorldObject worldObject = Find.WorldObjects.MapParentAt(target.Tile);
+                if (worldObject == null)
+                {
+                    foreach (WorldObject candidate in Find.WorldObjects.ObjectsAt(target.Tile))
+                    {
+                        if (candidate != null && !candidate.Destroyed)
+                        {
+                            worldObject = candidate;
+                            break;
+                        }
+                    }
+                }
+
+                if (worldObject != null && !worldObject.Destroyed)
+                {
+                    return worldObject.LabelCap;
+                }
+            }
+
+            return target.Tile.Valid ? target.Tile.ToString() : "BSL_StatusUnavailable".Translate();
+        }
+
+        public static void StopWorldTargeting()
+        {
+            if (Find.WorldTargeter != null && Find.WorldTargeter.IsTargeting)
+            {
+                Find.WorldTargeter.StopTargeting();
+            }
         }
     }
 }

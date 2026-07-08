@@ -29,9 +29,12 @@ namespace BetterShuttleLaunch.LaunchQueue
 
         public static void StartLaunchWhenReadyFlow(Building_PassengerShuttle shuttle)
         {
-            PassengerShuttleLaunchBridge.OpenLoadDialogThenChooseDestination(shuttle, (destinationTile, arrivalAction) =>
+            PassengerShuttleLaunchBridge.OpenLoadDialogThenRunAction(shuttle, () =>
             {
-                QueueMapShuttleLaunch(shuttle, destinationTile, GetOriginLabel(shuttle), GetDestinationLabel(destinationTile, arrivalAction), arrivalAction);
+                PassengerShuttleLaunchBridge.StartChoosingQueuedDestination(shuttle, (destinationTile, destinationLabel, arrivalAction) =>
+                {
+                    QueueMapShuttleLaunch(shuttle, destinationTile, GetOriginLabel(shuttle), destinationLabel, arrivalAction);
+                });
             });
         }
 
@@ -44,9 +47,9 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             Building_PassengerShuttle shuttle = caravan.Shuttle;
-            shuttle.LaunchableComp.StartChoosingDestination((destinationTile, arrivalAction) =>
+            PassengerShuttleLaunchBridge.StartChoosingQueuedDestinationFromCaravan(caravan, (destinationTile, destinationLabel, arrivalAction) =>
             {
-                QueueCaravanLaunch(caravan, shuttle, destinationTile, GetOriginLabel(caravan), GetDestinationLabel(destinationTile, arrivalAction), arrivalAction);
+                QueueCaravanLaunch(caravan, shuttle, destinationTile, GetOriginLabel(caravan), destinationLabel, arrivalAction);
             });
         }
 
@@ -169,6 +172,7 @@ namespace BetterShuttleLaunch.LaunchQueue
         {
             if (arrivalAction == null || !destinationTile.Valid)
             {
+                PassengerShuttleLaunchBridge.StopWorldTargeting();
                 Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
                 return;
             }
@@ -193,6 +197,7 @@ namespace BetterShuttleLaunch.LaunchQueue
         {
             if (arrivalAction == null || !destinationTile.Valid)
             {
+                PassengerShuttleLaunchBridge.StopWorldTargeting();
                 Messages.Message("BSL_DestinationInvalid".Translate(), MessageTypeDefOf.RejectInput, false);
                 return;
             }
@@ -217,7 +222,7 @@ namespace BetterShuttleLaunch.LaunchQueue
                     return;
                 }
 
-                PassengerShuttleLaunchBridge.TryChooseSpecificWorldTarget(
+                PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetForQueuedLaunch(
                     shuttle,
                     new GlobalTargetInfo(destination),
                     (tile, action) => QueueMapShuttleLaunch(shuttle, tile, GetOriginLabel(shuttle), destination.LabelCap, action));
@@ -233,13 +238,13 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
-            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetFromCaravan(
+            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetFromCaravanForQueuedLaunch(
                 caravan,
                 new GlobalTargetInfo(destination),
                 (tile, action) => QueueCaravanLaunch(caravan, shuttle, tile, GetOriginLabel(caravan), destination.LabelCap, action));
         }
 
-        private static void StartReturnWithLandingSelection(Building_PassengerShuttle shuttle, MapParent destination)
+        public static void StartReturnWithLandingSelection(Building_PassengerShuttle shuttle, MapParent destination)
         {
             if (destination == null)
             {
@@ -249,14 +254,14 @@ namespace BetterShuttleLaunch.LaunchQueue
 
             PassengerShuttleLaunchBridge.OpenLoadDialogThenRunAction(shuttle, () =>
             {
-                PassengerShuttleLaunchBridge.TryChooseSpecificWorldTarget(
+                PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetForQueuedLaunch(
                     shuttle,
                     new GlobalTargetInfo(destination),
                     (tile, action) => QueueMapShuttleLaunch(shuttle, tile, GetOriginLabel(shuttle), destination.LabelCap, action));
             });
         }
 
-        private static void StartCaravanReturnWithLandingSelection(Caravan caravan, MapParent destination)
+        public static void StartCaravanReturnWithLandingSelection(Caravan caravan, MapParent destination)
         {
             if (destination == null)
             {
@@ -265,13 +270,13 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
-            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetFromCaravan(
+            PassengerShuttleLaunchBridge.TryChooseSpecificWorldTargetFromCaravanForQueuedLaunch(
                 caravan,
                 new GlobalTargetInfo(destination),
                 (tile, action) => QueueCaravanLaunch(caravan, shuttle, tile, GetOriginLabel(caravan), destination.LabelCap, action));
         }
 
-        private static void StartReturnToLastDepartureCell(Building_PassengerShuttle shuttle, LastDepartureLocation location)
+        public static void StartReturnToLastDepartureCell(Building_PassengerShuttle shuttle, LastDepartureLocation location)
         {
             PassengerShuttleLaunchBridge.OpenLoadDialogThenRunAction(shuttle, () =>
             {
@@ -292,7 +297,7 @@ namespace BetterShuttleLaunch.LaunchQueue
             });
         }
 
-        private static void StartCaravanReturnToLastDepartureCell(Caravan caravan, LastDepartureLocation location)
+        public static void StartCaravanReturnToLastDepartureCell(Caravan caravan, LastDepartureLocation location)
         {
             Building_PassengerShuttle shuttle = caravan?.Shuttle;
             if (!PassengerShuttleLaunchBridge.TryCreateSpecificLandingActionForCaravanQueuedLaunch(
@@ -311,7 +316,7 @@ namespace BetterShuttleLaunch.LaunchQueue
             QueueCaravanLaunch(caravan, shuttle, tile, GetOriginLabel(caravan), location.MapParent.LabelCap, action);
         }
 
-        private static bool TryGetLastDepartureLocation(Building_PassengerShuttle shuttle, out LastDepartureLocation location)
+        public static bool TryGetLastDepartureLocation(Building_PassengerShuttle shuttle, out LastDepartureLocation location)
         {
             location = default;
             return LaunchQueueGameComponent.Current != null

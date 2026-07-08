@@ -7,31 +7,29 @@ namespace BetterShuttleLaunch.UI
 {
     public class Command_PassengerShuttleLaunchMenu : Command
     {
-        private readonly Action leftClickAction;
-        private readonly Func<List<FloatMenuOption>> createRightClickOptions;
+        private readonly Func<List<FloatMenuOption>> createOptions;
 
-        public Command_PassengerShuttleLaunchMenu(Action leftClickAction, Func<List<FloatMenuOption>> createRightClickOptions)
+        public Command_PassengerShuttleLaunchMenu(Func<List<FloatMenuOption>> createOptions)
         {
-            this.leftClickAction = leftClickAction;
-            this.createRightClickOptions = createRightClickOptions;
+            this.createOptions = createOptions;
         }
 
         public override void ProcessInput(Event ev)
         {
             base.ProcessInput(ev);
-            if (ev != null && ev.button == 1)
+            if (disabled || ev == null || (ev.button != 0 && ev.button != 1))
             {
-                List<FloatMenuOption> options = createRightClickOptions?.Invoke() ?? new List<FloatMenuOption>();
-                if (options.Count == 0)
-                {
-                    options.Add(new FloatMenuOption("BSL_NoAvailableLaunchOptions".Translate(), null));
-                }
-
-                Find.WindowStack.Add(new FloatMenu(options));
                 return;
             }
 
-            leftClickAction?.Invoke();
+            List<FloatMenuOption> options = createOptions?.Invoke() ?? new List<FloatMenuOption>();
+            if (options.Count == 0)
+            {
+                options.Add(new FloatMenuOption("BSL_NoAvailableLaunchOptions".Translate(), null));
+            }
+
+            Find.WindowStack.Add(new FloatMenu(options));
+            ev.Use();
         }
     }
 }

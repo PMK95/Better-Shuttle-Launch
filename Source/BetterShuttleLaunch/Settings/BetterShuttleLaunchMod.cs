@@ -1,5 +1,6 @@
 using UnityEngine;
 using Verse;
+using BetterShuttleLaunch.UI;
 
 namespace BetterShuttleLaunch.Settings
 {
@@ -40,10 +41,6 @@ namespace BetterShuttleLaunch.Settings
                 ref Settings.ShowTrackerRouteEndpointIcons,
                 "BSL_SettingShowTrackerRouteEndpointIconsDesc".Translate());
             listing.CheckboxLabeled(
-                "BSL_SettingShowMapPassengerOverlay".Translate(),
-                ref Settings.ShowMapPassengerOverlay,
-                "BSL_SettingShowMapPassengerOverlayDesc".Translate());
-            listing.CheckboxLabeled(
                 "BSL_SettingShowTrackerHoverHelpAndHighlight".Translate(),
                 ref Settings.ShowTrackerHoverHelpAndHighlight,
                 "BSL_SettingShowTrackerHoverHelpAndHighlightDesc".Translate());
@@ -55,6 +52,13 @@ namespace BetterShuttleLaunch.Settings
                 "BSL_SettingFocusOnShuttleArrival".Translate(),
                 ref Settings.FocusOnShuttleArrival,
                 "BSL_SettingFocusOnShuttleArrivalDesc".Translate());
+            listing.GapLine();
+            if (listing.ButtonText("BSL_SettingResetAll".Translate()))
+            {
+                Settings.ResetToDefaults();
+                PassengerShuttleTrackerWindowPatch.RecreateTrackerWindow();
+            }
+
             listing.End();
         }
     }

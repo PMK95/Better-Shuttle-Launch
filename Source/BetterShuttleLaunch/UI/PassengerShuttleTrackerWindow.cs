@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Collections;
-using System.Reflection;
 using BetterShuttleLaunch.LaunchQueue;
 using BetterShuttleLaunch.Settings;
 using BetterShuttleLaunch.Shuttles;
@@ -14,12 +12,17 @@ namespace BetterShuttleLaunch.UI
 {
     public class PassengerShuttleTrackerWindow : Window
     {
-        private const float ExpandedWidth = 430f;
-        private const float ExpandedHeight = 260f;
+        private const float DefaultWidth = 520f;
+        private const float DefaultHeight = 300f;
+        private const float MinWidth = 460f;
+        private const float MinHeight = 180f;
+        private const float MaxWidth = 720f;
+        private const float MaxHeight = 600f;
         private const float MinimizedHeight = 38f;
         private const int EstimatedShuttleTravelTicksPerTile = 120;
         private Vector2 scrollPosition;
         private bool dragging;
+        private bool resizing;
 
         public PassengerShuttleTrackerWindow()
         {
@@ -33,18 +36,25 @@ namespace BetterShuttleLaunch.UI
             forcePause = false;
 
             BetterShuttleLaunchSettings settings = BetterShuttleLaunchMod.ActiveSettings;
-            float x = settings.TrackerWindowX < 0f ? Verse.UI.screenWidth - ExpandedWidth - 18f : settings.TrackerWindowX;
+            float width = Mathf.Clamp(settings.TrackerWindowWidth, MinWidth, MaxWidth);
+            float height = Mathf.Clamp(settings.TrackerWindowHeight, MinHeight, MaxHeight);
+            float x = settings.TrackerWindowX < 0f ? Verse.UI.screenWidth - width - 18f : settings.TrackerWindowX;
             float y = settings.TrackerWindowY;
-            windowRect = new Rect(x, y, ExpandedWidth, settings.TrackerWindowMinimized ? MinimizedHeight : ExpandedHeight);
+            windowRect = new Rect(x, y, width, settings.TrackerWindowMinimized ? MinimizedHeight : height);
         }
 
-        public override Vector2 InitialSize => new Vector2(ExpandedWidth, BetterShuttleLaunchMod.ActiveSettings.TrackerWindowMinimized ? MinimizedHeight : ExpandedHeight);
+        public override Vector2 InitialSize => new Vector2(
+            Mathf.Clamp(BetterShuttleLaunchMod.ActiveSettings.TrackerWindowWidth, MinWidth, MaxWidth),
+            BetterShuttleLaunchMod.ActiveSettings.TrackerWindowMinimized
+                ? MinimizedHeight
+                : Mathf.Clamp(BetterShuttleLaunchMod.ActiveSettings.TrackerWindowHeight, MinHeight, MaxHeight));
 
         public override void DoWindowContents(Rect inRect)
         {
             BetterShuttleLaunchTextures.DrawIfAvailable(inRect, BetterShuttleLaunchTextures.TrackerPanelBackground);
             Rect headerRect = new Rect(0f, 0f, inRect.width, 30f);
             BetterShuttleLaunchTextures.DrawIfAvailable(headerRect, BetterShuttleLaunchTextures.TrackerPanelHeader);
+            Widgets.DrawBox(headerRect, 1);
             HandleRightMouseDrag(headerRect);
             if (BetterShuttleLaunchTextures.CommandOpenTracker != null)
             {
@@ -85,16 +95,11 @@ namespace BetterShuttleLaunch.UI
             }
 
             Map map = Find.CurrentMap;
-            if (map == null)
-            {
-                Widgets.Label(new Rect(0f, 38f, inRect.width, 26f), "BSL_StatusUnavailable".Translate());
-                return;
-            }
-
             List<PassengerShuttleTrackerRow> rows = BuildRows(map);
             if (rows.Count == 0)
             {
                 Widgets.Label(new Rect(0f, 38f, inRect.width, 26f), "BSL_NoShuttles".Translate());
+                HandleResize(inRect);
                 return;
             }
 
@@ -107,6 +112,7 @@ namespace BetterShuttleLaunch.UI
             }
 
             Widgets.EndScrollView();
+            HandleResize(inRect);
         }
 
         private static List<PassengerShuttleTrackerRow> BuildRows(Map map)
@@ -116,7 +122,11 @@ namespace BetterShuttleLaunch.UI
 
             if (BetterShuttleLaunchMod.ActiveSettings.TrackerShowOnlyCurrentMapShuttles)
             {
-                AddMapPassengerShuttleRows(rows, map, queue);
+                if (map != null)
+                {
+                    AddMapPassengerShuttleRows(rows, map, queue);
+                }
+
                 return rows;
             }
 
@@ -252,49 +262,18 @@ namespace BetterShuttleLaunch.UI
             Rect stateIconRect = new Rect(rect.x + 4f, rect.y + 31f, 18f, 18f);
             DrawStateIcon(stateIconRect, state, row.Shuttle);
             AddOptionalTooltip(stateIconRect, "BSL_StateIconTooltip".Translate(statusText));
-            DrawCompactStats(new Rect(rect.x + 28f, rect.y + 28f, 150f, 26f), row.Shuttle, row);
+            DrawCompactStats(new Rect(rect.x + 28f, rect.y + 25f, 108f, 30f), row.Shuttle, row);
 
-            Rect routeRect = new Rect(rect.x + 164f, rect.y + 5f, rect.width - 268f, 48f);
+            Rect routeRect = new Rect(rect.x + 146f, rect.y + 5f, rect.width - 244f, 48f);
             DrawRoute(routeRect, row, state);
 
             Rect selectRect = new Rect(rect.x, rect.y, rect.width - 92f, rect.height);
             HandleRowSelection(selectRect, row);
 
-            bool quickReturnVisible = ShouldShowQuickReturn(row, state);
-            bool focusButtonVisible = CanFocusTrackedRow(row);
-            if (focusButtonVisible)
+            Rect actionRect = new Rect(rect.xMax - 86f, rect.y + 18f, 80f, 24f);
+            if (DrawTrackerButton(actionRect, "BSL_TrackerActions".Translate(), row.Shuttle != null && !row.Shuttle.Destroyed, "BSL_TrackerActionsTooltip".Translate()))
             {
-                Rect focusRect = new Rect(rect.xMax - 86f, rect.y + 3f, 80f, 17f);
-                if (DrawTrackerButton(focusRect, "BSL_FocusShuttle".Translate(), true, "BSL_FocusShuttleTooltip".Translate()))
-                {
-                    SelectTrackedEntity(row);
-                }
-            }
-
-            if (row.QueuedLaunch == null && state != PassengerShuttleFlightState.InFlight)
-            {
-                float readyY = focusButtonVisible ? rect.y + 21f : rect.y + (quickReturnVisible ? 4f : 16f);
-                Rect readyRect = new Rect(rect.xMax - 86f, readyY, 80f, focusButtonVisible ? 17f : 24f);
-                if (DrawTrackerButton(readyRect, "BSL_ReadyShortcut".Translate(), true, "BSL_ReadyShortcutTooltip".Translate()))
-                {
-                    PassengerShuttleLaunchQueueCommandUtility.StartLaunchWhenReadyFlow(row.Shuttle);
-                }
-            }
-
-            if (quickReturnVisible)
-            {
-                Rect returnRect = new Rect(rect.xMax - 86f, focusButtonVisible ? rect.y + 40f : rect.y + 32f, 80f, focusButtonVisible ? 17f : 24f);
-                if (PassengerShuttleLaunchQueueCommandUtility.CanStartReturnFlow(row.Shuttle))
-                {
-                    if (DrawTrackerButton(returnRect, "BSL_QuickReturn".Translate(), true, "BSL_QuickReturnTooltip".Translate()))
-                    {
-                        PassengerShuttleLaunchQueueCommandUtility.StartReturnFlow(row.Shuttle);
-                    }
-                }
-                else
-                {
-                    DrawTrackerButton(returnRect, "BSL_QuickReturn".Translate(), false, "BSL_DisabledReasonTooltip".Translate("BSL_QuickReturnTooltip".Translate(), "BSL_LastDepartureCellUnavailable".Translate()));
-                }
+                OpenActionMenu(row);
             }
         }
 
@@ -333,6 +312,20 @@ namespace BetterShuttleLaunch.UI
             return PassengerShuttleFlightState.Queued;
         }
 
+        private static void OpenActionMenu(PassengerShuttleTrackerRow row)
+        {
+            Caravan caravan = GetRowCaravan(row);
+            List<FloatMenuOption> options = caravan != null && !caravan.Destroyed && caravan.Shuttle == row.Shuttle
+                ? PassengerShuttleTrackerActionMenu.CreateForCaravan(caravan)
+                : PassengerShuttleTrackerActionMenu.CreateForMapShuttle(row.Shuttle);
+            if (options.Count == 0)
+            {
+                options.Add(new FloatMenuOption("BSL_NoAvailableLaunchOptions".Translate(), null));
+            }
+
+            Find.WindowStack.Add(new FloatMenu(options));
+        }
+
         private static void DrawRoute(Rect rect, PassengerShuttleTrackerRow row, PassengerShuttleFlightState state)
         {
             string origin = row.QueuedLaunch?.OriginLabel ?? row.TrackedFlight?.OriginLabel ?? "BSL_StatusIdle".Translate();
@@ -346,7 +339,7 @@ namespace BetterShuttleLaunch.UI
                 RouteEndpointInfo destinationEndpoint = BuildRouteEndpointInfo(destinationTile, destination, "BSL_RouteEndpointDestination".Translate());
                 Rect originRect = new Rect(rect.x, rect.y + 18f, 24f, 24f);
                 Rect destinationRect = new Rect(rect.xMax - 24f, rect.y + 18f, 24f, 24f);
-                lineRect = new Rect(originRect.xMax + 6f, rect.y + 30f, destinationRect.x - originRect.xMax - 12f, 2f);
+                lineRect = new Rect(originRect.center.x, rect.y + 30f, destinationRect.center.x - originRect.center.x, 2f);
                 DrawRouteEndpointIcon(originRect, originEndpoint);
                 DrawRouteEndpointIcon(destinationRect, destinationEndpoint);
                 AddOptionalTooltip(lineRect.ExpandedBy(4f), "BSL_RouteTooltip".Translate(origin, destination));
@@ -374,7 +367,8 @@ namespace BetterShuttleLaunch.UI
                 BetterShuttleLaunchTextures.DrawIfAvailable(fillRect, BetterShuttleLaunchTextures.TrackerProgressFill);
             }
 
-            Rect iconRect = new Rect(lineRect.x + (lineRect.width - 24f) * progress, rect.y + 19f, 24f, 24f);
+            float markerCenterX = Mathf.Lerp(lineRect.x, lineRect.xMax, progress);
+            Rect iconRect = new Rect(markerCenterX - 12f, rect.y + 19f, 24f, 24f);
             if (BetterShuttleLaunchTextures.TrackerShuttleMarker != null)
             {
                 BetterShuttleLaunchTextures.DrawIfAvailable(iconRect.ExpandedBy(2f), BetterShuttleLaunchTextures.TrackerShuttleMarker, ScaleMode.ScaleToFit);
@@ -745,7 +739,7 @@ namespace BetterShuttleLaunch.UI
         {
             BetterShuttleLaunchSettings settings = BetterShuttleLaunchMod.Settings;
             settings.TrackerWindowMinimized = !settings.TrackerWindowMinimized;
-            windowRect.height = settings.TrackerWindowMinimized ? MinimizedHeight : ExpandedHeight;
+            windowRect.height = settings.TrackerWindowMinimized ? MinimizedHeight : Mathf.Clamp(settings.TrackerWindowHeight, MinHeight, MaxHeight);
         }
 
         private void ToggleCurrentMapFilter()
@@ -775,6 +769,39 @@ namespace BetterShuttleLaunch.UI
             if (dragging && ev.rawType == EventType.MouseUp && ev.button == 1)
             {
                 dragging = false;
+                ev.Use();
+            }
+        }
+
+        private void HandleResize(Rect inRect)
+        {
+            Rect resizeRect = new Rect(inRect.xMax - 16f, inRect.yMax - 16f, 14f, 14f);
+            Widgets.DrawBox(resizeRect, 1);
+            DrawSolidRect(new Rect(resizeRect.x + 3f, resizeRect.yMax - 4f, resizeRect.width - 5f, 1f), Color.white);
+            DrawSolidRect(new Rect(resizeRect.xMax - 4f, resizeRect.y + 3f, 1f, resizeRect.height - 5f), Color.white);
+
+            Event ev = Event.current;
+            if (ev.type == EventType.MouseDown && ev.button == 0 && resizeRect.Contains(ev.mousePosition))
+            {
+                resizing = true;
+                ev.Use();
+            }
+
+            if (resizing && ev.type == EventType.MouseDrag && ev.button == 0)
+            {
+                BetterShuttleLaunchSettings settings = BetterShuttleLaunchMod.Settings;
+                float newWidth = Mathf.Clamp(windowRect.width + ev.delta.x, MinWidth, MaxWidth);
+                float newHeight = Mathf.Clamp(windowRect.height + ev.delta.y, MinHeight, MaxHeight);
+                windowRect.width = newWidth;
+                windowRect.height = newHeight;
+                settings.TrackerWindowWidth = newWidth;
+                settings.TrackerWindowHeight = newHeight;
+                ev.Use();
+            }
+
+            if (resizing && ev.rawType == EventType.MouseUp && ev.button == 0)
+            {
+                resizing = false;
                 ev.Use();
             }
         }
@@ -944,22 +971,6 @@ namespace BetterShuttleLaunch.UI
             }
         }
 
-        private static bool CanFocusTrackedRow(PassengerShuttleTrackerRow row)
-        {
-            if (row.Shuttle != null && !row.Shuttle.Destroyed && row.Shuttle.Spawned)
-            {
-                return true;
-            }
-
-            Caravan caravan = GetRowCaravan(row);
-            if (caravan != null && !caravan.Destroyed)
-            {
-                return true;
-            }
-
-            return GetCurrentWorldTile(row).Valid;
-        }
-
         private static PlanetTile GetCurrentWorldTile(PassengerShuttleTrackerRow row)
         {
             Caravan caravan = GetRowCaravan(row);
@@ -990,34 +1001,34 @@ namespace BetterShuttleLaunch.UI
                    && currentTile == destinationTile;
         }
 
-        private static bool ShouldShowQuickReturn(PassengerShuttleTrackerRow row, PassengerShuttleFlightState state)
-        {
-            if (row.Shuttle == null || row.Shuttle.Destroyed || row.QueuedLaunch != null || state == PassengerShuttleFlightState.InFlight)
-            {
-                return false;
-            }
-
-            Map map = row.Shuttle.Map;
-            return map?.Parent != null && (!map.IsPlayerHome || map.Parent.Faction != Faction.OfPlayer);
-        }
-
         private static Caravan GetRowCaravan(PassengerShuttleTrackerRow row)
         {
-            return row.Caravan ?? row.QueuedLaunch?.Caravan ?? row.TrackedFlight?.Caravan;
-        }
-
-        private static string GetCompactStatusText(Building_PassengerShuttle shuttle)
-        {
-            if (shuttle == null || shuttle.Destroyed)
+            Caravan caravan = row.Caravan ?? row.QueuedLaunch?.Caravan ?? row.TrackedFlight?.Caravan;
+            if (caravan != null && !caravan.Destroyed && caravan.Shuttle == row.Shuttle)
             {
-                return "BSL_StatusUnavailable".Translate();
+                return caravan;
             }
 
-            int pawnCount = CountLoadedPawns(shuttle.TransporterComp);
-            string fuelText = shuttle.FuelLevel.ToStringPercent();
-            string hitPointText = shuttle.HitPoints + "/" + shuttle.MaxHitPoints;
-            string massText = GetMassUsageText(shuttle.TransporterComp, shuttle.GetStatValue(StatDefOf.Mass));
-            return "BSL_ShuttleCompactStats".Translate(fuelText, hitPointText, massText, pawnCount.ToString());
+            return FindPlayerCaravanContainingShuttle(row.Shuttle);
+        }
+
+        private static Caravan FindPlayerCaravanContainingShuttle(Building_PassengerShuttle shuttle)
+        {
+            if (shuttle == null || Find.WorldObjects?.Caravans == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < Find.WorldObjects.Caravans.Count; i++)
+            {
+                Caravan caravan = Find.WorldObjects.Caravans[i];
+                if (caravan != null && !caravan.Destroyed && caravan.Faction == Faction.OfPlayer && caravan.Shuttle == shuttle)
+                {
+                    return caravan;
+                }
+            }
+
+            return null;
         }
 
         private static void DrawCompactStats(Rect rect, Building_PassengerShuttle shuttle, PassengerShuttleTrackerRow row)
@@ -1028,20 +1039,18 @@ namespace BetterShuttleLaunch.UI
                 return;
             }
 
-            int pawnCount = CountLoadedPawns(shuttle.TransporterComp);
+            float fuelRatio = shuttle.MaxFuelLevel <= 0f ? 0f : Mathf.Clamp01(shuttle.FuelLevel / shuttle.MaxFuelLevel);
             float hitPointRatio = shuttle.MaxHitPoints <= 0 ? 0f : (float)shuttle.HitPoints / shuttle.MaxHitPoints;
             float massRatio = GetMassUsageRatio(shuttle.TransporterComp, row);
-            float passengerRatio = Mathf.Clamp01(pawnCount / 8f);
-            float segmentWidth = rect.width / 4f;
-            DrawVerticalStatBar(new Rect(rect.x, rect.y, segmentWidth, rect.height), BetterShuttleLaunchTextures.BadgeFuel, "F", shuttle.FuelLevel, "BSL_ShuttleFuelTooltip".Translate(shuttle.FuelLevel.ToStringPercent()));
-            DrawVerticalStatBar(new Rect(rect.x + segmentWidth, rect.y, segmentWidth, rect.height), BetterShuttleLaunchTextures.BadgeHealth, "H", hitPointRatio, "BSL_ShuttleHealthTooltip".Translate(shuttle.HitPoints.ToString(), shuttle.MaxHitPoints.ToString()));
-            DrawVerticalStatBar(new Rect(rect.x + segmentWidth * 2f, rect.y, segmentWidth, rect.height), BetterShuttleLaunchTextures.BadgeMass, "M", massRatio, "BSL_ShuttleMassTooltip".Translate(GetMassUsageText(shuttle.TransporterComp, shuttle.GetStatValue(StatDefOf.Mass))));
-            DrawVerticalStatBar(new Rect(rect.x + segmentWidth * 3f, rect.y, segmentWidth, rect.height), BetterShuttleLaunchTextures.BadgePassengers, "P", passengerRatio, "BSL_ShuttlePassengersTooltip".Translate(pawnCount.ToString()));
+            float segmentWidth = rect.width / 3f;
+            DrawVerticalStatBar(new Rect(rect.x, rect.y, segmentWidth, rect.height), BetterShuttleLaunchTextures.BadgeFuel, "F", fuelRatio, false, "BSL_ShuttleFuelTooltip".Translate(GetFuelUsageText(shuttle)));
+            DrawVerticalStatBar(new Rect(rect.x + segmentWidth, rect.y, segmentWidth, rect.height), BetterShuttleLaunchTextures.BadgeHealth, "H", hitPointRatio, false, "BSL_ShuttleHealthTooltip".Translate(shuttle.HitPoints.ToString(), shuttle.MaxHitPoints.ToString()));
+            DrawVerticalStatBar(new Rect(rect.x + segmentWidth * 2f, rect.y, segmentWidth, rect.height), BetterShuttleLaunchTextures.BadgeMass, "M", massRatio, true, "BSL_ShuttleMassTooltip".Translate(GetMassUsageText(shuttle.TransporterComp, shuttle.GetStatValue(StatDefOf.Mass))));
         }
 
-        private static void DrawVerticalStatBar(Rect rect, Texture2D badgeTexture, string fallbackLabel, float fillPercent, string tooltip)
+        private static void DrawVerticalStatBar(Rect rect, Texture2D badgeTexture, string fallbackLabel, float fillPercent, bool invertColor, string tooltip)
         {
-            Rect iconRect = new Rect(rect.x + 1f, rect.y + 1f, 12f, 12f);
+            Rect iconRect = new Rect(rect.center.x - 6f, rect.yMax - 12f, 12f, 12f);
             if (badgeTexture != null)
             {
                 BetterShuttleLaunchTextures.DrawIfAvailable(iconRect, badgeTexture, ScaleMode.ScaleToFit);
@@ -1057,11 +1066,11 @@ namespace BetterShuttleLaunch.UI
                 Text.Font = oldFont;
             }
 
-            Rect barRect = new Rect(rect.x + 16f, rect.y + 2f, 7f, rect.height - 4f);
+            Rect barRect = new Rect(rect.center.x - 4f, rect.y + 1f, 8f, rect.height - 15f);
             Widgets.DrawBox(barRect, 1);
             float clampedFill = Mathf.Clamp01(fillPercent);
             Rect fillRect = new Rect(barRect.x + 1f, barRect.yMax - 1f - (barRect.height - 2f) * clampedFill, barRect.width - 2f, (barRect.height - 2f) * clampedFill);
-            DrawSolidRect(fillRect, GetStatBarColor(clampedFill));
+            DrawSolidRect(fillRect, GetStatBarColor(invertColor ? 1f - clampedFill : clampedFill));
             AddOptionalTooltip(rect, tooltip);
         }
 
@@ -1078,31 +1087,6 @@ namespace BetterShuttleLaunch.UI
             }
 
             return new Color(0.35f, 0.78f, 0.45f, 1f);
-        }
-
-        internal static int CountLoadedPawns(CompTransporter transporter)
-        {
-            if (transporter == null)
-            {
-                return 0;
-            }
-
-            FieldInfo innerContainerField = typeof(CompTransporter).GetField("innerContainer", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (!(innerContainerField?.GetValue(transporter) is IEnumerable things))
-            {
-                return 0;
-            }
-
-            int count = 0;
-            foreach (object thing in things)
-            {
-                if (thing is Pawn)
-                {
-                    count++;
-                }
-            }
-
-            return count;
         }
 
         private static float GetMassUsageRatio(CompTransporter transporter, PassengerShuttleTrackerRow row)
@@ -1129,6 +1113,16 @@ namespace BetterShuttleLaunch.UI
             }
 
             return fallbackMass.ToStringMass();
+        }
+
+        private static string GetFuelUsageText(Building_PassengerShuttle shuttle)
+        {
+            if (shuttle == null)
+            {
+                return "0 / 0";
+            }
+
+            return shuttle.FuelLevel.ToString("0.#") + " / " + shuttle.MaxFuelLevel.ToString("0.#");
         }
 
         private readonly struct RouteEndpointInfo
@@ -1179,32 +1173,28 @@ namespace BetterShuttleLaunch.UI
 
         public static void Postfix()
         {
-            if (!ModsConfig.OdysseyActive || Find.CurrentMap == null)
+            if (!ModsConfig.OdysseyActive)
             {
                 CloseTrackerWindow();
                 return;
             }
 
             BetterShuttleLaunchSettings settings = BetterShuttleLaunchMod.ActiveSettings;
-            if (settings.ShowMapPassengerOverlay)
-            {
-                DrawLoadedPassengerShuttleMapOverlays(Find.CurrentMap);
-            }
-
-            if (!settings.ShowTrackerWindow || !ShouldShowForCurrentMap(Find.CurrentMap))
+            if (!settings.ShowTrackerWindow || Find.CurrentMap == null || !ShouldShowForCurrentMap(Find.CurrentMap))
             {
                 CloseTrackerWindow();
                 return;
             }
 
-            if (trackerWindow == null || !Find.WindowStack.Windows.Contains(trackerWindow))
-            {
-                trackerWindow = new PassengerShuttleTrackerWindow();
-                Find.WindowStack.Add(trackerWindow);
-            }
+            EnsureTrackerWindow();
         }
 
-        private static void CloseTrackerWindow()
+        internal static void RecreateTrackerWindow()
+        {
+            CloseTrackerWindow();
+        }
+
+        internal static void CloseTrackerWindow()
         {
             if (trackerWindow != null && Find.WindowStack != null && Find.WindowStack.Windows.Contains(trackerWindow))
             {
@@ -1214,46 +1204,12 @@ namespace BetterShuttleLaunch.UI
             trackerWindow = null;
         }
 
-        private static void DrawLoadedPassengerShuttleMapOverlays(Map map)
+        internal static void EnsureTrackerWindow()
         {
-            if (map == null)
+            if (trackerWindow == null || !Find.WindowStack.Windows.Contains(trackerWindow))
             {
-                return;
-            }
-
-            foreach (Building_PassengerShuttle shuttle in PassengerShuttleFinder.FindPassengerShuttles(map))
-            {
-                int pawnCount = PassengerShuttleTrackerWindow.CountLoadedPawns(shuttle.TransporterComp);
-                if (pawnCount <= 0)
-                {
-                    continue;
-                }
-
-                Vector2 labelPosition = GenMapUI.LabelDrawPosFor(shuttle, 1.2f);
-                Rect iconRect = new Rect(labelPosition.x - 9f, labelPosition.y - 28f, 18f, 18f);
-                Texture2D passengerIcon = BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.BadgePassengers, TexButton.ShowColonistBar);
-                if (passengerIcon != null)
-                {
-                    GUI.DrawTexture(iconRect, passengerIcon, ScaleMode.ScaleToFit);
-                }
-                else
-                {
-                    Widgets.DrawBox(iconRect, 1);
-                }
-
-                GameFont oldFont = Text.Font;
-                TextAnchor oldAnchor = Text.Anchor;
-                Text.Font = GameFont.Tiny;
-                Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(new Rect(iconRect.xMax - 2f, iconRect.yMax - 10f, 18f, 12f), pawnCount.ToString());
-                Text.Anchor = oldAnchor;
-                Text.Font = oldFont;
-
-                PassengerShuttleTrackerWindow.AddOptionalTooltip(iconRect.ExpandedBy(4f), "BSL_MapPassengerOverlayTooltip".Translate(shuttle.LabelCap, pawnCount.ToString()));
-                if (BetterShuttleLaunchMod.ActiveSettings.ShowTrackerHoverHelpAndHighlight && iconRect.ExpandedBy(4f).Contains(Event.current.mousePosition))
-                {
-                    TargetHighlighter.Highlight(new GlobalTargetInfo(shuttle), true, true, true);
-                }
+                trackerWindow = new PassengerShuttleTrackerWindow();
+                Find.WindowStack.Add(trackerWindow);
             }
         }
 
@@ -1324,6 +1280,56 @@ namespace BetterShuttleLaunch.UI
             }
 
             return false;
+        }
+    }
+
+    [HarmonyPatch(typeof(WorldInterface), nameof(WorldInterface.WorldInterfaceOnGUI))]
+    public static class PassengerShuttleTrackerWorldWindowPatch
+    {
+        public static void Postfix()
+        {
+            if (!ModsConfig.OdysseyActive)
+            {
+                PassengerShuttleTrackerWindowPatch.CloseTrackerWindow();
+                return;
+            }
+
+            if (!BetterShuttleLaunchMod.ActiveSettings.ShowTrackerWindow)
+            {
+                PassengerShuttleTrackerWindowPatch.CloseTrackerWindow();
+                return;
+            }
+
+            PassengerShuttleTrackerWindowPatch.EnsureTrackerWindow();
+        }
+    }
+
+    [HarmonyPatch(typeof(PlaySettings), nameof(PlaySettings.DoPlaySettingsGlobalControls))]
+    public static class PassengerShuttleTrackerGlobalControlsPatch
+    {
+        public static void Postfix(WidgetRow row, bool worldView)
+        {
+            if (!ModsConfig.OdysseyActive || row == null)
+            {
+                return;
+            }
+
+            bool showTrackerWindow = BetterShuttleLaunchMod.ActiveSettings.ShowTrackerWindow;
+            bool previous = showTrackerWindow;
+            row.ToggleableIcon(
+                ref showTrackerWindow,
+                BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandOpenTracker, CompLaunchable.LaunchCommandTex),
+                "BSL_SettingShowTrackerWindowDesc".Translate());
+            if (showTrackerWindow == previous)
+            {
+                return;
+            }
+
+            BetterShuttleLaunchMod.Settings.ShowTrackerWindow = showTrackerWindow;
+            if (!showTrackerWindow)
+            {
+                PassengerShuttleTrackerWindowPatch.CloseTrackerWindow();
+            }
         }
     }
 }

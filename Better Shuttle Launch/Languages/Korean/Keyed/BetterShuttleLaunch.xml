@@ -45,7 +45,7 @@
   <BSL_ShuttleTracker>왕복선 관제</BSL_ShuttleTracker>
   <BSL_ReadyShortcut>준비 발사</BSL_ReadyShortcut>
   <BSL_QuickReturn>귀환</BSL_QuickReturn>
-  <BSL_ShuttleCompactStats>연료 {0}  내구 {1}  무게 {2}  인원 {3}</BSL_ShuttleCompactStats>
+  <BSL_ShuttleCompactStats>연료 {0}  내구 {1}  무게 {2}</BSL_ShuttleCompactStats>
   <BSL_FocusShuttle>위치</BSL_FocusShuttle>
   <BSL_ShuttleTrackerHeaderTooltip>왕복선 관제입니다. 헤더를 우클릭 드래그하면 위치를 옮길 수 있습니다.</BSL_ShuttleTrackerHeaderTooltip>
   <BSL_TrackerFilterAllTooltip>모든 플레이어 탑승자 왕복선을 표시 중입니다. 클릭하면 현재 맵 안에 있는 왕복선만 표시합니다.</BSL_TrackerFilterAllTooltip>
@@ -58,12 +58,15 @@
   <BSL_FocusShuttleTooltip>이 왕복선 또는 현재 월드 위치로 이동합니다.</BSL_FocusShuttleTooltip>
   <BSL_ReadyShortcutTooltip>적재와 목적지를 설정한 뒤 조건이 맞으면 자동 발사하도록 예약합니다.</BSL_ReadyShortcutTooltip>
   <BSL_QuickReturnTooltip>마지막 출발 맵으로 귀환 발사를 예약합니다.</BSL_QuickReturnTooltip>
+  <BSL_TrackerActions>작업</BSL_TrackerActions>
+  <BSL_TrackerActionsTooltip>이 왕복선에 사용할 발사/귀환 작업을 엽니다.</BSL_TrackerActionsTooltip>
+  <BSL_MenuReadyLaunch>예약발사</BSL_MenuReadyLaunch>
+  <BSL_MenuReturnChooseLanding>귀환(위치 선택/{0})</BSL_MenuReturnChooseLanding>
+  <BSL_MenuReturnLastCell>귀환(마지막 위치/{0})</BSL_MenuReturnLastCell>
   <BSL_DisabledReasonTooltip>{0}\n\n사용 불가: {1}</BSL_DisabledReasonTooltip>
   <BSL_ShuttleFuelTooltip>연료: {0}</BSL_ShuttleFuelTooltip>
   <BSL_ShuttleHealthTooltip>내구: {0} / {1}</BSL_ShuttleHealthTooltip>
   <BSL_ShuttleMassTooltip>무게: {0}</BSL_ShuttleMassTooltip>
-  <BSL_ShuttlePassengersTooltip>탑승 인원: {0}</BSL_ShuttlePassengersTooltip>
-  <BSL_MapPassengerOverlayTooltip>{0}\n탑승 인원: {1}</BSL_MapPassengerOverlayTooltip>
   <BSL_MenuLaunchToSettlementDesc>다른 플레이어 정착지를 목록으로 보여주고, 착륙 위치를 선택한 뒤 예약 발사합니다.</BSL_MenuLaunchToSettlementDesc>
   <BSL_MenuReturnDesc>마지막 출발 맵으로 귀환 발사를 예약합니다.</BSL_MenuReturnDesc>
   <BSL_MenuCancelQueuedLaunchDesc>자동 발사 예약을 취소합니다. 기존 적재 명령은 유지됩니다.</BSL_MenuCancelQueuedLaunchDesc>
@@ -78,14 +81,13 @@
   <BSL_SettingShowTrackerWindowDesc>현재 맵과 플레이어 왕복선 상태를 보여주는 관제창을 표시합니다.</BSL_SettingShowTrackerWindowDesc>
   <BSL_SettingShowTrackerRouteEndpointIcons>관제 UI 경로 아이콘 표시</BSL_SettingShowTrackerRouteEndpointIcons>
   <BSL_SettingShowTrackerRouteEndpointIconsDesc>진행바 양끝에 출발지와 도착지를 클릭 가능한 아이콘으로 표시합니다.</BSL_SettingShowTrackerRouteEndpointIconsDesc>
-  <BSL_SettingShowMapPassengerOverlay>지도 위 탑승자 아이콘 표시</BSL_SettingShowMapPassengerOverlay>
-  <BSL_SettingShowMapPassengerOverlayDesc>맵에 있는 왕복선에 탑승자가 있으면 작은 인원 아이콘을 표시합니다.</BSL_SettingShowMapPassengerOverlayDesc>
   <BSL_SettingShowTrackerHoverHelpAndHighlight>관제 UI 마우스오버 도움말/강조 표시</BSL_SettingShowTrackerHoverHelpAndHighlight>
   <BSL_SettingShowTrackerHoverHelpAndHighlightDesc>관제창 요소에 마우스를 올렸을 때 설명 툴팁과 대상 강조를 표시합니다.</BSL_SettingShowTrackerHoverHelpAndHighlightDesc>
   <BSL_SettingPauseOnShuttleArrival>왕복선 도착 시 정지</BSL_SettingPauseOnShuttleArrival>
   <BSL_SettingPauseOnShuttleArrivalDesc>예약 발사 왕복선이 목적지에 도착하는 순간 게임을 일시정지합니다.</BSL_SettingPauseOnShuttleArrivalDesc>
   <BSL_SettingFocusOnShuttleArrival>왕복선 도착 시 포커스 이동</BSL_SettingFocusOnShuttleArrival>
   <BSL_SettingFocusOnShuttleArrivalDesc>예약 발사 왕복선이 목적지에 도착하면 해당 왕복선, 목적지 맵, 월드 타일 순서로 화면을 이동합니다.</BSL_SettingFocusOnShuttleArrivalDesc>
+  <BSL_SettingResetAll>Better Shuttle Launch 설정 기본값 복원</BSL_SettingResetAll>
   <BSL_RouteEndpointOrigin>출발지</BSL_RouteEndpointOrigin>
   <BSL_RouteEndpointDestination>도착지</BSL_RouteEndpointDestination>
   <BSL_RouteEndpointMap>맵 대상</BSL_RouteEndpointMap>
@@ -93,4 +95,5 @@
   <BSL_RouteEndpointEmpty>빈 월드 타일</BSL_RouteEndpointEmpty>
   <BSL_RouteEndpointWorldObject>월드 대상</BSL_RouteEndpointWorldObject>
   <BSL_RouteEndpointTooltip>{0}: {1}\n유형: {2}\n클릭하면 해당 위치로 이동합니다.</BSL_RouteEndpointTooltip>
+  <BSL_QueuedDestinationTargetingLabel>예약 발사 목적지: {0}</BSL_QueuedDestinationTargetingLabel>
 </LanguageData>
