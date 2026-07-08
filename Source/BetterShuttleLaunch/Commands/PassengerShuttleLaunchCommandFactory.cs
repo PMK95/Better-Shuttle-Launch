@@ -14,7 +14,7 @@ namespace BetterShuttleLaunch.Commands
         public static Gizmo CreateForMapShuttle(Building_PassengerShuttle shuttle)
         {
             Command_PassengerShuttleLaunchMenu command = new Command_PassengerShuttleLaunchMenu(
-                () => PassengerShuttleTrackerActionMenu.CreateForMapShuttle(shuttle))
+                () => PassengerShuttleLaunchActionMenu.CreateForMapShuttle(shuttle))
             {
                 defaultLabel = "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = "BSL_LaunchWhenReadyDesc".Translate(),
@@ -46,7 +46,7 @@ namespace BetterShuttleLaunch.Commands
         public static Gizmo CreateForCaravan(Caravan caravan)
         {
             Command_PassengerShuttleLaunchMenu command = new Command_PassengerShuttleLaunchMenu(
-                () => PassengerShuttleTrackerActionMenu.CreateForCaravan(caravan))
+                () => PassengerShuttleLaunchActionMenu.CreateForCaravan(caravan))
             {
                 defaultLabel = "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = "BSL_LaunchWhenReadyDesc".Translate(),
@@ -60,7 +60,7 @@ namespace BetterShuttleLaunch.Commands
         {
             if (shuttles.Count == 1)
             {
-                return PassengerShuttleTrackerActionMenu.CreateForMapShuttle(shuttles[0]);
+                return PassengerShuttleLaunchActionMenu.CreateForMapShuttle(shuttles[0]);
             }
 
             List<FloatMenuOption> options = new List<FloatMenuOption>();

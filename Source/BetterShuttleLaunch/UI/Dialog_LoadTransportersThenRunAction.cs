@@ -25,9 +25,9 @@ namespace BetterShuttleLaunch.UI
         public override void PostClose()
         {
             base.PostClose();
-            if (accepted)
+            if (accepted && afterAccepted != null)
             {
-                DeferredUiActionGameComponent.RunOnNextUpdate(afterAccepted);
+                DelayedUiActionGameComponent.RunAfterWindowStackSettles(afterAccepted);
             }
         }
     }

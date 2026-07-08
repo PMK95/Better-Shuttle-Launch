@@ -8,7 +8,7 @@ using Verse;
 
 namespace BetterShuttleLaunch.UI
 {
-    public static class PassengerShuttleTrackerActionMenu
+    public static class PassengerShuttleLaunchActionMenu
     {
         public static List<FloatMenuOption> CreateForMapShuttle(Building_PassengerShuttle shuttle)
         {

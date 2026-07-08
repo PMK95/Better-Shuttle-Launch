@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using BetterShuttleLaunch.ReturnHome;
-using BetterShuttleLaunch.Settings;
 using BetterShuttleLaunch.Shuttles;
 using RimWorld;
 using RimWorld.Planet;
@@ -11,7 +10,6 @@ namespace BetterShuttleLaunch.LaunchQueue
     public class LaunchQueueGameComponent : GameComponent
     {
         private List<QueuedPassengerShuttleLaunch> queuedLaunches = new List<QueuedPassengerShuttleLaunch>();
-        private List<TrackedPassengerShuttleFlight> trackedFlights = new List<TrackedPassengerShuttleFlight>();
         private List<Building_PassengerShuttle> departureShuttles = new List<Building_PassengerShuttle>();
         private List<MapParent> departureMapParents = new List<MapParent>();
         private List<IntVec3> departureCells = new List<IntVec3>();
@@ -24,8 +22,6 @@ namespace BetterShuttleLaunch.LaunchQueue
         public static LaunchQueueGameComponent Current => global::Verse.Current.Game?.GetComponent<LaunchQueueGameComponent>();
 
         public IReadOnlyList<QueuedPassengerShuttleLaunch> QueuedLaunches => queuedLaunches;
-
-        public IReadOnlyList<TrackedPassengerShuttleFlight> TrackedFlights => trackedFlights;
 
         public bool IsQueued(Building_PassengerShuttle shuttle)
         {
@@ -73,24 +69,6 @@ namespace BetterShuttleLaunch.LaunchQueue
             return null;
         }
 
-        public TrackedPassengerShuttleFlight FindTrackedFlight(Building_PassengerShuttle shuttle)
-        {
-            if (shuttle == null)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < trackedFlights.Count; i++)
-            {
-                if (trackedFlights[i].Shuttle == shuttle)
-                {
-                    return trackedFlights[i];
-                }
-            }
-
-            return null;
-        }
-
         public void AddOrReplaceQueuedLaunch(QueuedPassengerShuttleLaunch queuedLaunch)
         {
             if (queuedLaunch?.Shuttle == null)
@@ -110,7 +88,6 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             queuedLaunches.Add(queuedLaunch);
-            AddOrReplaceTrackedFlight(queuedLaunch);
             LookTargets targets = queuedLaunch.Caravan != null ? new LookTargets(queuedLaunch.Caravan) : new LookTargets(queuedLaunch.Shuttle);
             string destinationLabel = queuedLaunch.DestinationLabel.NullOrEmpty() ? queuedLaunch.DestinationTile.ToString() : queuedLaunch.DestinationLabel;
             Messages.Message("BSL_QueuedForDestination".Translate(destinationLabel), targets, MessageTypeDefOf.TaskCompletion, false);
@@ -123,7 +100,6 @@ namespace BetterShuttleLaunch.LaunchQueue
                 if (queuedLaunches[i].Shuttle == shuttle)
                 {
                     queuedLaunches.RemoveAt(i);
-                    RemoveTrackedFlight(shuttle);
                     if (showMessage)
                     {
                         Messages.Message("BSL_QueuedLaunchCanceled".Translate(), shuttle, MessageTypeDefOf.NeutralEvent, false);
@@ -138,9 +114,7 @@ namespace BetterShuttleLaunch.LaunchQueue
             {
                 if (queuedLaunches[i].Caravan == caravan)
                 {
-                    Building_PassengerShuttle shuttle = queuedLaunches[i].Shuttle;
                     queuedLaunches.RemoveAt(i);
-                    RemoveTrackedFlight(shuttle);
                     if (showMessage)
                     {
                         Messages.Message("BSL_QueuedLaunchCanceled".Translate(), caravan, MessageTypeDefOf.NeutralEvent, false);
@@ -188,7 +162,6 @@ namespace BetterShuttleLaunch.LaunchQueue
         {
             base.ExposeData();
             Scribe_Collections.Look(ref queuedLaunches, "queuedPassengerShuttleLaunches", LookMode.Deep);
-            Scribe_Collections.Look(ref trackedFlights, "trackedPassengerShuttleFlights", LookMode.Deep);
             Scribe_Collections.Look(ref departureShuttles, "departureShuttles", LookMode.Reference);
             Scribe_Collections.Look(ref departureMapParents, "departureMapParents", LookMode.Reference);
             Scribe_Collections.Look(ref departureCells, "departureCells", LookMode.Value);
@@ -197,8 +170,6 @@ namespace BetterShuttleLaunch.LaunchQueue
             {
                 queuedLaunches ??= new List<QueuedPassengerShuttleLaunch>();
                 queuedLaunches.RemoveAll(queuedLaunch => queuedLaunch == null);
-                trackedFlights ??= new List<TrackedPassengerShuttleFlight>();
-                trackedFlights.RemoveAll(trackedFlight => trackedFlight == null || trackedFlight.Shuttle == null);
                 departureShuttles ??= new List<Building_PassengerShuttle>();
                 departureMapParents ??= new List<MapParent>();
                 departureCells ??= new List<IntVec3>();
@@ -219,14 +190,11 @@ namespace BetterShuttleLaunch.LaunchQueue
             {
                 ProcessQueuedLaunch(queuedLaunches[i], i);
             }
-
-            UpdateTrackedFlights();
         }
 
         private void ProcessQueuedLaunch(QueuedPassengerShuttleLaunch queuedLaunch, int index)
         {
             LaunchReadinessResult readiness = LaunchReadinessEvaluator.EvaluateQueuedPassengerShuttleLaunch(queuedLaunch);
-            UpdateTrackedFlightFromQueuedLaunch(queuedLaunch, readiness);
             if (readiness.ShouldCancel)
             {
                 CancelQueuedLaunchAt(index, queuedLaunch, readiness.FailureReason);
@@ -246,7 +214,6 @@ namespace BetterShuttleLaunch.LaunchQueue
                     return;
                 }
 
-                MarkTrackedFlightInFlight(queuedLaunch);
                 queuedLaunches.RemoveAt(index);
                 return;
             }
@@ -257,14 +224,12 @@ namespace BetterShuttleLaunch.LaunchQueue
                 return;
             }
 
-            MarkTrackedFlightInFlight(queuedLaunch);
             queuedLaunches.RemoveAt(index);
         }
 
         private void CancelQueuedLaunchAt(int index, QueuedPassengerShuttleLaunch queuedLaunch, string reason)
         {
             queuedLaunches.RemoveAt(index);
-            MarkTrackedFlightFailed(queuedLaunch, reason);
             string failureReason = reason.NullOrEmpty() ? "BSL_StatusUnavailable".Translate() : reason;
             if (queuedLaunch?.Caravan != null)
             {
@@ -279,251 +244,6 @@ namespace BetterShuttleLaunch.LaunchQueue
             }
 
             Messages.Message("BSL_AutoLaunchFailed".Translate(failureReason), new LookTargets(queuedLaunch.Shuttle), MessageTypeDefOf.NegativeEvent, false);
-        }
-
-        private void AddOrReplaceTrackedFlight(QueuedPassengerShuttleLaunch queuedLaunch)
-        {
-            TrackedPassengerShuttleFlight trackedFlight = FindTrackedFlight(queuedLaunch.Shuttle);
-            if (trackedFlight == null)
-            {
-                trackedFlights.Add(new TrackedPassengerShuttleFlight(queuedLaunch));
-                return;
-            }
-
-            trackedFlight.Caravan = queuedLaunch.Caravan;
-            trackedFlight.OriginTile = queuedLaunch.OriginTile;
-            trackedFlight.DestinationTile = queuedLaunch.DestinationTile;
-            trackedFlight.OriginLabel = queuedLaunch.OriginLabel;
-            trackedFlight.DestinationLabel = queuedLaunch.DestinationLabel;
-            trackedFlight.State = PassengerShuttleFlightState.Queued;
-            trackedFlight.StatusText = "BSL_StatusQueued".Translate();
-            trackedFlight.CreatedTick = Find.TickManager.TicksGame;
-            trackedFlight.LaunchedTick = 0;
-            trackedFlight.ArrivedTick = 0;
-        }
-
-        private void RemoveTrackedFlight(Building_PassengerShuttle shuttle)
-        {
-            for (int i = trackedFlights.Count - 1; i >= 0; i--)
-            {
-                if (trackedFlights[i].Shuttle == shuttle)
-                {
-                    trackedFlights.RemoveAt(i);
-                }
-            }
-        }
-
-        private void UpdateTrackedFlightFromQueuedLaunch(QueuedPassengerShuttleLaunch queuedLaunch, LaunchReadinessResult readiness)
-        {
-            TrackedPassengerShuttleFlight trackedFlight = FindTrackedFlight(queuedLaunch.Shuttle);
-            if (trackedFlight == null)
-            {
-                return;
-            }
-
-            trackedFlight.StatusText = readiness.StatusText.NullOrEmpty() ? "BSL_StatusQueued".Translate() : readiness.StatusText;
-            if (readiness.CanLaunchNow)
-            {
-                trackedFlight.State = PassengerShuttleFlightState.Ready;
-                return;
-            }
-
-            if (queuedLaunch.Shuttle?.TransporterComp != null && queuedLaunch.Shuttle.TransporterComp.AnyInGroupHasAnythingLeftToLoad)
-            {
-                trackedFlight.State = PassengerShuttleFlightState.Loading;
-                return;
-            }
-
-            trackedFlight.State = PassengerShuttleFlightState.Waiting;
-        }
-
-        private void MarkTrackedFlightInFlight(QueuedPassengerShuttleLaunch queuedLaunch)
-        {
-            TrackedPassengerShuttleFlight trackedFlight = FindTrackedFlight(queuedLaunch.Shuttle);
-            if (trackedFlight == null)
-            {
-                trackedFlights.Add(new TrackedPassengerShuttleFlight(queuedLaunch));
-                trackedFlight = trackedFlights[trackedFlights.Count - 1];
-            }
-
-            trackedFlight.State = PassengerShuttleFlightState.InFlight;
-            trackedFlight.StatusText = "BSL_StatusInFlight".Translate();
-            trackedFlight.LaunchedTick = Find.TickManager.TicksGame;
-        }
-
-        private void MarkTrackedFlightFailed(QueuedPassengerShuttleLaunch queuedLaunch, string reason)
-        {
-            if (queuedLaunch?.Shuttle == null)
-            {
-                return;
-            }
-
-            TrackedPassengerShuttleFlight trackedFlight = FindTrackedFlight(queuedLaunch.Shuttle);
-            if (trackedFlight == null)
-            {
-                trackedFlights.Add(new TrackedPassengerShuttleFlight(queuedLaunch));
-                trackedFlight = trackedFlights[trackedFlights.Count - 1];
-            }
-
-            trackedFlight.State = PassengerShuttleFlightState.Failed;
-            trackedFlight.StatusText = reason.NullOrEmpty() ? "BSL_StatusUnavailable".Translate() : reason;
-            trackedFlight.ArrivedTick = Find.TickManager.TicksGame;
-        }
-
-        private void UpdateTrackedFlights()
-        {
-            for (int i = trackedFlights.Count - 1; i >= 0; i--)
-            {
-                TrackedPassengerShuttleFlight trackedFlight = trackedFlights[i];
-                if (trackedFlight?.Shuttle == null || trackedFlight.Shuttle.Destroyed)
-                {
-                    trackedFlights.RemoveAt(i);
-                    continue;
-                }
-
-                if (trackedFlight.State == PassengerShuttleFlightState.InFlight && HasTrackedFlightArrived(trackedFlight))
-                {
-                    trackedFlight.State = PassengerShuttleFlightState.Arrived;
-                    trackedFlight.StatusText = "BSL_StatusArrived".Translate();
-                    trackedFlight.ArrivedTick = Find.TickManager.TicksGame;
-                    ApplyArrivalOptionsOnce(trackedFlight);
-                    continue;
-                }
-
-                if ((trackedFlight.State == PassengerShuttleFlightState.Arrived || trackedFlight.State == PassengerShuttleFlightState.Failed)
-                    && trackedFlight.ArrivedTick > 0
-                    && Find.TickManager.TicksGame - trackedFlight.ArrivedTick > 3600)
-                {
-                    trackedFlights.RemoveAt(i);
-                }
-            }
-        }
-
-        private static bool HasTrackedFlightArrived(TrackedPassengerShuttleFlight trackedFlight)
-        {
-            if (trackedFlight?.Shuttle == null || !trackedFlight.DestinationTile.Valid)
-            {
-                return false;
-            }
-
-            MapParent mapParent = trackedFlight.Shuttle.Map?.Parent;
-            if (trackedFlight.Shuttle.Spawned && mapParent != null && mapParent.Tile == trackedFlight.DestinationTile)
-            {
-                return true;
-            }
-
-            Caravan caravan = GetTrackedOrCurrentCaravan(trackedFlight);
-            if (caravan == null || caravan.Destroyed)
-            {
-                return false;
-            }
-
-            trackedFlight.Caravan = caravan;
-            return caravan.Tile.Valid && caravan.Tile == trackedFlight.DestinationTile;
-        }
-
-        private static void ApplyArrivalOptionsOnce(TrackedPassengerShuttleFlight trackedFlight)
-        {
-            BetterShuttleLaunchSettings settings = BetterShuttleLaunchMod.ActiveSettings;
-            if (settings.PauseOnShuttleArrival)
-            {
-                Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
-            }
-
-            if (settings.FocusOnShuttleArrival)
-            {
-                JumpToArrivedShuttleOrDestination(trackedFlight);
-            }
-        }
-
-        private static void JumpToArrivedShuttleOrDestination(TrackedPassengerShuttleFlight trackedFlight)
-        {
-            Building_PassengerShuttle shuttle = trackedFlight?.Shuttle;
-            if (shuttle != null && !shuttle.Destroyed && shuttle.Spawned)
-            {
-                CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(shuttle), CameraJumper.MovementMode.Pan);
-                return;
-            }
-
-            Caravan caravan = GetTrackedOrCurrentCaravan(trackedFlight);
-            if (caravan != null && !caravan.Destroyed)
-            {
-                CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(caravan), CameraJumper.MovementMode.Pan);
-                return;
-            }
-
-            PlanetTile destinationTile = trackedFlight?.DestinationTile ?? default;
-            if (!destinationTile.Valid || Find.WorldObjects == null)
-            {
-                return;
-            }
-
-            MapParent mapParent = Find.WorldObjects.MapParentAt(destinationTile);
-            if (mapParent != null && !mapParent.Destroyed && mapParent.HasMap)
-            {
-                CameraJumper.TryJump(mapParent.Map.Center, mapParent.Map, CameraJumper.MovementMode.Pan);
-                return;
-            }
-
-            WorldObject worldObject = FindWorldObjectAtTile(destinationTile);
-            if (worldObject != null && !worldObject.Destroyed)
-            {
-                CameraJumper.TryJumpAndSelect(new GlobalTargetInfo(worldObject), CameraJumper.MovementMode.Pan);
-                return;
-            }
-
-            CameraJumper.TryJump(destinationTile, CameraJumper.MovementMode.Pan);
-            Find.WorldSelector.ClearSelection();
-            Find.WorldSelector.SelectedTile = destinationTile;
-        }
-
-        private static WorldObject FindWorldObjectAtTile(PlanetTile tile)
-        {
-            if (!tile.Valid || Find.WorldObjects == null)
-            {
-                return null;
-            }
-
-            foreach (WorldObject worldObject in Find.WorldObjects.ObjectsAt(tile))
-            {
-                if (worldObject != null && !worldObject.Destroyed)
-                {
-                    return worldObject;
-                }
-            }
-
-            return null;
-        }
-
-        private static Caravan GetTrackedOrCurrentCaravan(TrackedPassengerShuttleFlight trackedFlight)
-        {
-            if (trackedFlight?.Caravan != null
-                && !trackedFlight.Caravan.Destroyed
-                && trackedFlight.Caravan.Shuttle == trackedFlight.Shuttle)
-            {
-                return trackedFlight.Caravan;
-            }
-
-            return FindPlayerCaravanContainingShuttle(trackedFlight?.Shuttle);
-        }
-
-        private static Caravan FindPlayerCaravanContainingShuttle(Building_PassengerShuttle shuttle)
-        {
-            if (shuttle == null || Find.WorldObjects?.Caravans == null)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < Find.WorldObjects.Caravans.Count; i++)
-            {
-                Caravan caravan = Find.WorldObjects.Caravans[i];
-                if (caravan != null && !caravan.Destroyed && caravan.Faction == Faction.OfPlayer && caravan.Shuttle == shuttle)
-                {
-                    return caravan;
-                }
-            }
-
-            return null;
         }
 
         private void RemoveInvalidDepartureLocations()
