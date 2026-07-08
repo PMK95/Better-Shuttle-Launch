@@ -5,12 +5,12 @@ using Verse;
 
 namespace BetterShuttleLaunch.UI
 {
-    public class Command_PassengerShuttleLaunchMenu : Command
+    public class Command_ShuttleLaunch : Command_Action
     {
         private readonly Func<List<FloatMenuOption>> createOptions;
         private static Texture2D floatMenuIndicatorTexture;
 
-        public Command_PassengerShuttleLaunchMenu(Func<List<FloatMenuOption>> createOptions)
+        public Command_ShuttleLaunch(Func<List<FloatMenuOption>> createOptions)
         {
             this.createOptions = createOptions;
         }
@@ -24,20 +24,20 @@ namespace BetterShuttleLaunch.UI
 
         public override void ProcessInput(Event ev)
         {
-            base.ProcessInput(ev);
-            if (disabled || ev == null || (ev.button != 0 && ev.button != 1))
+            if (disabled)
             {
+                base.ProcessInput(ev);
                 return;
             }
 
-            List<FloatMenuOption> options = createOptions?.Invoke() ?? new List<FloatMenuOption>();
-            if (options.Count == 0)
+            if (ev != null && ev.button == 1)
             {
-                options.Add(new FloatMenuOption("BSL_NoAvailableLaunchOptions".Translate(), null));
+                Find.WindowStack.Add(new FloatMenu(CreateOptions()));
+                ev.Use();
+                return;
             }
 
-            Find.WindowStack.Add(new FloatMenu(options));
-            ev.Use();
+            base.ProcessInput(ev);
         }
 
         private static void DrawFloatMenuIndicator(Rect butRect)
@@ -88,6 +88,17 @@ namespace BetterShuttleLaunch.UI
 
             texture.Apply(false, true);
             return texture;
+        }
+
+        private List<FloatMenuOption> CreateOptions()
+        {
+            List<FloatMenuOption> options = createOptions?.Invoke() ?? new List<FloatMenuOption>();
+            if (options.Count == 0)
+            {
+                options.Add(new FloatMenuOption("BSL_NoAvailableLaunchOptions".Translate(), null));
+            }
+
+            return options;
         }
     }
 }

@@ -1,6 +1,6 @@
-namespace BetterShuttleLaunch.LaunchQueue
+namespace BetterShuttleLaunch.Domain
 {
-    public enum QueuedLaunchRangeState
+    public enum LaunchRangeState
     {
         InvalidDestination,
         Ready,

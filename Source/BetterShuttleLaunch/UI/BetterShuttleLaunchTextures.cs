@@ -6,8 +6,6 @@ namespace BetterShuttleLaunch.UI
     public static class BetterShuttleLaunchTextures
     {
         public static readonly Texture2D CommandLaunchWhenReady = Load("UI/Commands/BSL_LaunchWhenReady");
-        public static readonly Texture2D CommandLaunchToSettlement = Load("UI/Commands/BSL_LaunchToSettlement");
-        public static readonly Texture2D CommandReturn = Load("UI/Commands/BSL_Return");
         public static readonly Texture2D CommandCancelLaunch = Load("UI/Commands/BSL_CancelLaunch");
 
         public static Texture2D OrFallback(Texture2D customTexture, Texture2D fallbackTexture)

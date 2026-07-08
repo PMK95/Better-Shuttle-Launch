@@ -27,7 +27,7 @@ namespace BetterShuttleLaunch.UI
             base.PostClose();
             if (accepted && afterAccepted != null)
             {
-                DelayedUiActionGameComponent.RunAfterWindowStackSettles(afterAccepted);
+                LongEventHandler.ExecuteWhenFinished(afterAccepted);
             }
         }
     }

@@ -1,8 +1,8 @@
-namespace BetterShuttleLaunch.LaunchQueue
+namespace BetterShuttleLaunch.Domain
 {
-    public readonly struct LaunchReadinessResult
+    public readonly struct LaunchReadiness
     {
-        public LaunchReadinessResult(bool canLaunchNow, bool shouldCancel, string statusText, string failureReason)
+        public LaunchReadiness(bool canLaunchNow, bool shouldCancel, string statusText, string failureReason)
         {
             CanLaunchNow = canLaunchNow;
             ShouldCancel = shouldCancel;
