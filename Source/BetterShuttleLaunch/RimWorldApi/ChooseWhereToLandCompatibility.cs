@@ -30,13 +30,11 @@ namespace BetterShuttleLaunch.RimWorldApi
         public static bool TryCreateSiteOrSpaceLandingOption(
             WorldObject worldObject,
             List<CompTransporter> transporters,
-            bool containsNonDownedColonistAfterLoading,
             Action<PlanetTile, TransportersArrivalAction> chooseArrivalAction,
             out FloatMenuOption option)
         {
             option = null;
             if (!IsCustomLandingEnabled()
-                || !containsNonDownedColonistAfterLoading
                 || worldObject == null
                 || !worldObject.Spawned)
             {

@@ -473,7 +473,7 @@ namespace BetterShuttleLaunch.RimWorldApi
 
                 if (worldObject is Settlement settlement && options.Count == optionCountBeforeWorldObject)
                 {
-                    AddSettlementOptionsForPawnsWaitingToLoad(
+                    AddSettlementOptionsForQueuedLaunch(
                         context,
                         transporters,
                         settlement,
@@ -485,7 +485,6 @@ namespace BetterShuttleLaunch.RimWorldApi
                          && ChooseWhereToLandCompatibility.TryCreateSiteOrSpaceLandingOption(
                              worldObject,
                              transporters,
-                             ContainsNonDownedColonist(pawnsExpectedAfterLoading),
                              chooseArrivalAction,
                              out FloatMenuOption compatibilityOption))
                 {
@@ -543,7 +542,7 @@ namespace BetterShuttleLaunch.RimWorldApi
                 + ", 셔틀=" + context.Label);
         }
 
-        private static void AddSettlementOptionsForPawnsWaitingToLoad(
+        private static void AddSettlementOptionsForQueuedLaunch(
             ShuttleContext context,
             List<CompTransporter> transporters,
             Settlement settlement,
@@ -559,13 +558,8 @@ namespace BetterShuttleLaunch.RimWorldApi
                 return;
             }
 
-            if (pawnsExpectedAfterLoading.Count == 0)
-            {
-                return;
-            }
-
             int firstNewOptionIndex = options.Count;
-            if (settlement.Visitable && ContainsPotentialCaravanOwner(pawnsExpectedAfterLoading))
+            if (settlement.Visitable)
             {
                 options.Add(new FloatMenuOption(
                     "VisitSettlement".Translate(settlement.Label),
@@ -583,9 +577,8 @@ namespace BetterShuttleLaunch.RimWorldApi
                         new TransportersArrivalAction_Trade(settlement, "MessageShuttleArrived"))));
             }
 
-            AddAttackSettlementOptionForPawnsWaitingToLoad(
+            AddQueuedSettlementAttackOption(
                 context,
-                pawnsExpectedAfterLoading,
                 settlement,
                 chooseArrivalAction,
                 options);
@@ -650,19 +643,6 @@ namespace BetterShuttleLaunch.RimWorldApi
             return result;
         }
 
-        private static bool ContainsPotentialCaravanOwner(List<Pawn> pawns)
-        {
-            for (int i = 0; i < pawns.Count; i++)
-            {
-                if (CaravanUtility.IsOwner(pawns[i], Faction.OfPlayer))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         private static bool CanTradeAfterLoading(List<Pawn> pawns, Settlement settlement)
         {
             if (!settlement.Visitable
@@ -688,9 +668,8 @@ namespace BetterShuttleLaunch.RimWorldApi
             return false;
         }
 
-        private static void AddAttackSettlementOptionForPawnsWaitingToLoad(
+        private static void AddQueuedSettlementAttackOption(
             ShuttleContext context,
-            List<Pawn> pawnsExpectedAfterLoading,
             Settlement settlement,
             Action<PlanetTile, TransportersArrivalAction> chooseArrivalAction,
             List<FloatMenuOption> options)
@@ -700,8 +679,7 @@ namespace BetterShuttleLaunch.RimWorldApi
                 || transportShip == null
                 || !settlement.Spawned
                 || settlement.Faction == null
-                || !settlement.Attackable
-                || !ContainsNonDownedColonist(pawnsExpectedAfterLoading))
+                || !settlement.Attackable)
             {
                 return;
             }
@@ -741,25 +719,6 @@ namespace BetterShuttleLaunch.RimWorldApi
                     false,
                     null,
                     WindowLayer.Dialog))));
-        }
-
-        private static bool ContainsNonDownedColonist(List<Pawn> pawns)
-        {
-            if (pawns == null)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < pawns.Count; i++)
-            {
-                Pawn pawn = pawns[i];
-                if (pawn.IsColonist && !pawn.Downed)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         private static void WrapQueuedTargetOption(FloatMenuOption option)
