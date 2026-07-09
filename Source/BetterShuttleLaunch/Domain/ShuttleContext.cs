@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RimWorld;
 using RimWorld.Planet;
 using Verse;
@@ -6,14 +7,19 @@ namespace BetterShuttleLaunch.Domain
 {
     public class ShuttleContext
     {
-        private ShuttleContext(Building_PassengerShuttle shuttle, Caravan caravan)
+        private ShuttleContext(
+            Building_PassengerShuttle shuttle,
+            Caravan caravan,
+            IReadOnlyList<Pawn> pawnsExpectedAfterLoading = null)
         {
             Shuttle = shuttle;
             Caravan = caravan;
+            PawnsExpectedAfterLoading = pawnsExpectedAfterLoading;
         }
 
         public Building_PassengerShuttle Shuttle { get; }
         public Caravan Caravan { get; }
+        public IReadOnlyList<Pawn> PawnsExpectedAfterLoading { get; }
         public bool IsCaravan => Caravan != null;
         public CompLaunchable Launchable => Shuttle?.LaunchableComp;
         public CompTransporter Transporter => Shuttle?.TransporterComp;
@@ -22,6 +28,14 @@ namespace BetterShuttleLaunch.Domain
         public Map Map => IsCaravan ? null : Shuttle?.Map;
         public MapParent MapParent => Map?.Parent;
         public string Label => Caravan?.LabelCap ?? Shuttle?.LabelCap ?? "BSL_StatusUnavailable".Translate();
+
+        public ShuttleContext WithPawnsExpectedAfterLoading(IReadOnlyList<Pawn> pawns)
+        {
+            return new ShuttleContext(
+                Shuttle,
+                Caravan,
+                pawns == null ? null : new List<Pawn>(pawns));
+        }
 
         public static bool TryForMapShuttle(Building_PassengerShuttle shuttle, out ShuttleContext context, out string failReason)
         {

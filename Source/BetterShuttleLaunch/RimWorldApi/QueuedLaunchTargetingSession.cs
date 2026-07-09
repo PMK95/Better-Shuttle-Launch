@@ -1,9 +1,6 @@
-using System;
 using BetterShuttleLaunch.Domain;
-using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
-using UnityEngine;
 using Verse;
 
 namespace BetterShuttleLaunch.RimWorldApi
@@ -11,93 +8,78 @@ namespace BetterShuttleLaunch.RimWorldApi
     public static class QueuedLaunchTargetingSession
     {
         private static ShuttleContext context;
-        private static Func<PlanetTile, string> targetLabelGetter;
+        private static PlanetLayer cachedLayer;
+        private static PlanetTile cachedOrigin = PlanetTile.Invalid;
+        private static PlanetTile cachedClosest = PlanetTile.Invalid;
 
         public static bool Active => context != null && context.OriginTile.Valid && context.Launchable != null;
 
-        public static void Begin(ShuttleContext shuttleContext, Func<PlanetTile, string> labelGetter)
+        public static void Begin(ShuttleContext shuttleContext)
         {
             context = shuttleContext;
-            targetLabelGetter = labelGetter;
+            ClearLayerRangeCache();
         }
 
         public static void Clear()
         {
             context = null;
-            targetLabelGetter = null;
+            ClearLayerRangeCache();
         }
 
-        public static void DrawRangeRingsIfNeeded(WorldTargeter worldTargeter)
+        public static void DrawVanillaStyleRangeRingsForActiveTargeting()
         {
             if (!Active)
             {
                 return;
             }
 
-            if (worldTargeter == null || !worldTargeter.IsTargeting)
+            PlanetTile rangeCenter = GetRangeRingCenterTileForSelectedLayer(context.OriginTile);
+            if (!rangeCenter.Valid)
             {
-                Clear();
                 return;
             }
 
-            LaunchRangeInfo rangeInfo = LaunchRangeInfo.ForTile(context, context.OriginTile);
-            if (rangeInfo.MaximumRange >= 0)
-            {
-                GenDraw.DrawWorldRadiusRing(context.OriginTile, rangeInfo.MaximumRange, GenDraw.CurTargetingMat);
-            }
+            int maximumRange = context.Launchable.MaxLaunchDistanceEver(rangeCenter.Layer);
+            GenDraw.DrawWorldRadiusRing(rangeCenter, maximumRange, CompPilotConsole.GetThrusterRadiusMat(rangeCenter));
 
-            if (rangeInfo.CurrentFuelRange >= 0 && rangeInfo.CurrentFuelRange != rangeInfo.MaximumRange)
+            if (context.Launchable.Refuelable != null)
             {
-                GenDraw.DrawWorldRadiusRing(context.OriginTile, rangeInfo.CurrentFuelRange, GenDraw.CurTargetingMat);
+                int currentFuelRange = context.Launchable.MaxLaunchDistanceAtFuelLevel(context.FuelLevel, rangeCenter.Layer);
+                if (currentFuelRange >= 0)
+                {
+                    GenDraw.DrawWorldRadiusRing(rangeCenter, currentFuelRange, CompPilotConsole.GetFuelRadiusMat(rangeCenter));
+                }
             }
         }
 
-        public static void DrawFuelWarningIfNeeded(WorldTargeter worldTargeter)
+        private static PlanetTile GetRangeRingCenterTileForSelectedLayer(PlanetTile originTile)
         {
-            if (!Active)
+            if (!originTile.Valid)
             {
-                return;
+                return PlanetTile.Invalid;
             }
 
-            if (worldTargeter == null || !worldTargeter.IsTargeting)
+            PlanetLayer selectedLayer = PlanetLayer.Selected;
+            if (selectedLayer == null || originTile.Layer == selectedLayer)
             {
-                Clear();
-                return;
+                return originTile;
             }
 
-            PlanetTile targetTile = worldTargeter.ClosestLayerTile;
-            if (!targetTile.Valid)
+            if (cachedLayer != selectedLayer || cachedOrigin != originTile || !cachedClosest.Valid)
             {
-                return;
+                cachedLayer = selectedLayer;
+                cachedOrigin = originTile;
+                cachedClosest = selectedLayer.GetClosestTile_NewTemp(originTile);
             }
 
-            LaunchRangeInfo rangeInfo = LaunchRangeInfo.ForTile(context, targetTile);
-            if (rangeInfo.State != LaunchRangeState.NeedsFuel)
-            {
-                return;
-            }
-
-            string targetLabel = targetLabelGetter != null ? targetLabelGetter(targetTile) : targetTile.ToString();
-            string text = "BSL_QueuedDestinationFuelWaiting".Translate(targetLabel, rangeInfo.Distance.ToString(), rangeInfo.CurrentFuelRangeText);
-            Widgets.MouseAttachedLabel(text, 0f, 46f, new Color(1f, 0.82f, 0.28f));
+            return cachedClosest;
         }
-    }
 
-    [HarmonyPatch(typeof(WorldTargeter), nameof(WorldTargeter.TargeterOnGUI))]
-    public static class QueuedLaunchTargeterGuiPatch
-    {
-        public static void Postfix(WorldTargeter __instance)
+        private static void ClearLayerRangeCache()
         {
-            QueuedLaunchTargetingSession.DrawFuelWarningIfNeeded(__instance);
-        }
-    }
-
-    [HarmonyPatch(typeof(WorldTargeter), nameof(WorldTargeter.TargeterUpdate))]
-    public static class QueuedLaunchTargeterUpdatePatch
-    {
-        public static void Postfix(WorldTargeter __instance)
-        {
-            QueuedLaunchTargetingSession.DrawRangeRingsIfNeeded(__instance);
+            cachedLayer = null;
+            cachedOrigin = PlanetTile.Invalid;
+            cachedClosest = PlanetTile.Invalid;
         }
     }
 }

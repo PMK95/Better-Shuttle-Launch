@@ -71,6 +71,21 @@ namespace BetterShuttleLaunch.Services
                 return Cancel(stillValid.FailReason.NullOrEmpty() ? "BSL_DestinationInvalid".Translate() : stillValid.FailReason);
             }
 
+            if (queuedLaunch.ArrivalAction is TransportersArrivalAction_TransportShip transportShipArrivalAction
+                && transportShipArrivalAction.mapParent is Settlement settlement)
+            {
+                if (transportShipArrivalAction.transportShip == null || transportShipArrivalAction.transportShip.Disposed)
+                {
+                    return Cancel("BSL_DestinationInvalid".Translate());
+                }
+
+                FloatMenuAcceptanceReport canAttack = TransportersArrivalAction_AttackSettlement.CanAttack(transporters, settlement);
+                if (!canAttack.Accepted)
+                {
+                    return Cancel(canAttack.FailReason.NullOrEmpty() ? "BSL_DestinationInvalid".Translate() : canAttack.FailReason);
+                }
+            }
+
             return new LaunchReadiness(true, false, "BSL_StatusReady".Translate(), null);
         }
 

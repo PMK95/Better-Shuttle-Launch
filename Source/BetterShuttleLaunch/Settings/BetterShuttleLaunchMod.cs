@@ -24,10 +24,6 @@ namespace BetterShuttleLaunch.Settings
             Listing_Standard listing = new Listing_Standard();
             listing.Begin(inRect);
             listing.CheckboxLabeled(
-                "BSL_SettingHideVanillaLaunchCommand".Translate(),
-                ref Settings.HideVanillaLaunchCommand,
-                "BSL_SettingHideVanillaLaunchCommandDesc".Translate());
-            listing.CheckboxLabeled(
                 "BSL_SettingShowLaunchStatusInInspectPane".Translate(),
                 ref Settings.ShowLaunchStatusInInspectPane,
                 "BSL_SettingShowLaunchStatusInInspectPaneDesc".Translate());

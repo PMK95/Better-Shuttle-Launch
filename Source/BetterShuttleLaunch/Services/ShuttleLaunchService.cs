@@ -220,7 +220,7 @@ namespace BetterShuttleLaunch.Services
                 return;
             }
 
-            PassengerShuttleLaunchApi.OpenLoadDialogThenRun(context, () =>
+            PassengerShuttleLaunchApi.OpenLoadDialogThenRun(context, pawnsExpectedAfterLoading =>
             {
                 if (!ShuttleContext.TryForMapShuttle(context.Shuttle, out ShuttleContext currentContext, out string failReason))
                 {
@@ -228,7 +228,7 @@ namespace BetterShuttleLaunch.Services
                     return;
                 }
 
-                action(currentContext);
+                action(currentContext.WithPawnsExpectedAfterLoading(pawnsExpectedAfterLoading));
             });
         }
 

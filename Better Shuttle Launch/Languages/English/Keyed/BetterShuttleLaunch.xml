@@ -51,13 +51,8 @@
   <BSL_SelectSettlementDestinationTooltip>Schedule launch to {0}. You will choose a landing spot next.</BSL_SelectSettlementDestinationTooltip>
   <BSL_ReturnWithLandingSelectionTooltip>Return to {0} and choose a landing spot.</BSL_ReturnWithLandingSelectionTooltip>
   <BSL_ReturnToLastDepartureCellTooltip>Return to {0} and use the last departure spot if it is still valid.</BSL_ReturnToLastDepartureCellTooltip>
-  <BSL_SettingHideVanillaLaunchCommand>Hide the vanilla launch button</BSL_SettingHideVanillaLaunchCommand>
-  <BSL_SettingHideVanillaLaunchCommandDesc>Uses Better Shuttle Launch's unified Launch When Ready command as the main shuttle command.</BSL_SettingHideVanillaLaunchCommandDesc>
   <BSL_SettingShowLaunchStatusInInspectPane>Show launch status in the inspect pane</BSL_SettingShowLaunchStatusInInspectPane>
   <BSL_SettingShowLaunchStatusInInspectPaneDesc>Shows the same vanilla launch-blocking reason in the lower-left inspect pane.</BSL_SettingShowLaunchStatusInInspectPaneDesc>
-  <BSL_QueuedDestinationTargetingLabel>Scheduled launch destination: {0}</BSL_QueuedDestinationTargetingLabel>
-  <BSL_QueuedDestinationFuelReady>Scheduled launch destination: {0} (distance {1}, current fuel range {2})</BSL_QueuedDestinationFuelReady>
-  <BSL_QueuedDestinationFuelWaiting>Scheduled launch destination: {0} - not enough fuel yet (distance {1}, current fuel range {2}). It will launch after refueling.</BSL_QueuedDestinationFuelWaiting>
   <BSL_RangeUnlimited>unlimited</BSL_RangeUnlimited>
   <BSL_DestinationTargetingStartFailed>Could not start destination selection for the scheduled launch.</BSL_DestinationTargetingStartFailed>
 </LanguageData>

@@ -26,11 +26,6 @@ namespace BetterShuttleLaunch.Patches
 
             foreach (Gizmo gizmo in originalGizmos)
             {
-                if (isPassengerShuttle && BetterShuttleLaunchMod.ActiveSettings.HideVanillaLaunchCommand && IsVanillaLaunchCommand(gizmo))
-                {
-                    continue;
-                }
-
                 yield return gizmo;
             }
 
@@ -40,10 +35,6 @@ namespace BetterShuttleLaunch.Patches
             }
         }
 
-        private static bool IsVanillaLaunchCommand(Gizmo gizmo)
-        {
-            return gizmo is Command command && command.defaultLabel == "CommandLaunchGroup".Translate();
-        }
     }
 
     [HarmonyPatch(typeof(MapParent), nameof(MapParent.GetGizmos))]
@@ -87,11 +78,6 @@ namespace BetterShuttleLaunch.Patches
             bool isPassengerShuttleCaravan = ModsConfig.OdysseyActive && ShuttleContext.TryForCaravan(caravan, out _, out _);
             foreach (Gizmo gizmo in originalGizmos)
             {
-                if (isPassengerShuttleCaravan && BetterShuttleLaunchMod.ActiveSettings.HideVanillaLaunchCommand && IsVanillaLaunchCommand(gizmo))
-                {
-                    continue;
-                }
-
                 yield return gizmo;
             }
 
@@ -101,10 +87,6 @@ namespace BetterShuttleLaunch.Patches
             }
         }
 
-        private static bool IsVanillaLaunchCommand(Gizmo gizmo)
-        {
-            return gizmo is Command command && command.defaultLabel == "CommandLaunchGroup".Translate();
-        }
     }
 
     [HarmonyPatch(typeof(CompLaunchable), nameof(CompLaunchable.CompInspectStringExtra))]

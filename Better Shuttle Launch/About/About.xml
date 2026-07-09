@@ -21,6 +21,7 @@
   <loadAfter>
     <li>Ludeon.RimWorld.Odyssey</li>
     <li>brrainz.harmony</li>
+    <li>kearril.ChooseWhereToLand</li>
   </loadAfter>
   <description>Adds world-map passenger shuttle launch, return-home shortcuts, and scheduled launch when ready for RimWorld 1.6 Odyssey.</description>
 </ModMetaData>
