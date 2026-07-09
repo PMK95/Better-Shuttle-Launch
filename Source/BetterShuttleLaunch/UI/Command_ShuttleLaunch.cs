@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -8,17 +9,19 @@ namespace BetterShuttleLaunch.UI
     public class Command_ShuttleLaunch : Command_Action
     {
         private readonly Func<List<FloatMenuOption>> createOptions;
-        private static Texture2D floatMenuIndicatorTexture;
 
         public Command_ShuttleLaunch(Func<List<FloatMenuOption>> createOptions)
         {
             this.createOptions = createOptions;
+            action = ShowFloatMenu;
         }
+
+        public override IEnumerable<FloatMenuOption> RightClickFloatMenuOptions => CreateOptions();
 
         protected override GizmoResult GizmoOnGUIInt(Rect butRect, GizmoRenderParms parms)
         {
             GizmoResult result = base.GizmoOnGUIInt(butRect, parms);
-            DrawFloatMenuIndicator(butRect);
+            Designator_Dropdown.DrawExtraOptionsIcon(butRect.position, butRect.width);
             return result;
         }
 
@@ -32,7 +35,7 @@ namespace BetterShuttleLaunch.UI
 
             if (ev != null && ev.button == 1)
             {
-                Find.WindowStack.Add(new FloatMenu(CreateOptions()));
+                ShowFloatMenu();
                 ev.Use();
                 return;
             }
@@ -40,54 +43,14 @@ namespace BetterShuttleLaunch.UI
             base.ProcessInput(ev);
         }
 
-        private static void DrawFloatMenuIndicator(Rect butRect)
+        private void ShowFloatMenu()
         {
-            Rect indicatorRect = new Rect(butRect.xMax - 16f, butRect.y + 3f, 13f, 13f);
-            GUI.DrawTexture(indicatorRect, FloatMenuIndicatorTexture);
-        }
-
-        private static Texture2D FloatMenuIndicatorTexture
-        {
-            get
+            if (disabled)
             {
-                if (floatMenuIndicatorTexture == null)
-                {
-                    floatMenuIndicatorTexture = CreateFloatMenuIndicatorTexture();
-                }
-
-                return floatMenuIndicatorTexture;
-            }
-        }
-
-        private static Texture2D CreateFloatMenuIndicatorTexture()
-        {
-            const int size = 16;
-            Texture2D texture = new Texture2D(size, size, TextureFormat.ARGB32, false)
-            {
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp
-            };
-
-            Color clear = new Color(0f, 0f, 0f, 0f);
-            Color fill = new Color(0.62f, 0.62f, 0.62f, 0.95f);
-            Color edge = new Color(0.22f, 0.22f, 0.22f, 0.95f);
-            for (int y = 0; y < size; y++)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    if (x < size - 1 - y)
-                    {
-                        texture.SetPixel(x, y, clear);
-                        continue;
-                    }
-
-                    bool isEdge = x == size - 1 || y == size - 1 || x == size - 1 - y;
-                    texture.SetPixel(x, y, isEdge ? edge : fill);
-                }
+                return;
             }
 
-            texture.Apply(false, true);
-            return texture;
+            Find.WindowStack.Add(new FloatMenu(CreateOptions()));
         }
 
         private List<FloatMenuOption> CreateOptions()

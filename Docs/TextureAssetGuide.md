@@ -21,7 +21,5 @@ Better Shuttle Launch/Textures/UI/Commands
 | --- | ---: | ---: | --- |
 | `BSL_LaunchWhenReady.png` | 128 x 128 | 1:1 | 통합 버튼 `준비되면 발사` |
 | `BSL_CancelLaunch.png` | 128 x 128 | 1:1 | 예약 취소 아이콘 후보 |
-| `BSL_LaunchToSettlement.png` | 128 x 128 | 1:1 | 정착지로 발사 아이콘 후보 |
-| `BSL_Return.png` | 128 x 128 | 1:1 | 귀환 아이콘 후보 |
 
 현재 기본 커맨드는 `BSL_LaunchWhenReady.png`를 우선 사용하고, 파일이 없으면 바닐라 발사 아이콘을 사용합니다.

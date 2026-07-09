@@ -49,11 +49,8 @@ namespace BetterShuttleLaunch.UI
                 defaultLabel = allQueued ? "BSL_CancelQueuedLaunch".Translate() : "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = allQueued ? "BSL_CancelQueuedLaunchDesc".Translate() : "BSL_LaunchWhenReadyDesc".Translate(),
                 icon = allQueued
-                    ? BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandCancelLaunch, CompLaunchable.LaunchCommandTex)
-                    : BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandLaunchWhenReady, CompLaunchable.LaunchCommandTex),
-                action = allQueued
-                    ? (Action)(() => SelectContextAndRun(FindQueuedContexts(contexts), ShuttleLaunchService.CancelQueuedLaunch))
-                    : () => StartReadyLaunchForContexts(FindUnqueuedContexts(contexts))
+                    ? BetterShuttleLaunchTextures.GetCancelQueuedLaunchIcon()
+                    : BetterShuttleLaunchTextures.GetLaunchWhenReadyIcon()
             };
             return command;
         }
@@ -66,11 +63,8 @@ namespace BetterShuttleLaunch.UI
                 defaultLabel = hasQueuedLaunch ? "BSL_CancelQueuedLaunch".Translate() : "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = hasQueuedLaunch ? "BSL_CancelQueuedLaunchDesc".Translate() : "BSL_LaunchWhenReadyDesc".Translate(),
                 icon = hasQueuedLaunch
-                    ? BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandCancelLaunch, CompLaunchable.LaunchCommandTex)
-                    : BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandLaunchWhenReady, CompLaunchable.LaunchCommandTex),
-                action = hasQueuedLaunch
-                    ? (Action)(() => ShuttleLaunchService.CancelQueuedLaunch(context))
-                    : () => ShuttleLaunchService.StartReadyLaunch(context)
+                    ? BetterShuttleLaunchTextures.GetCancelQueuedLaunchIcon()
+                    : BetterShuttleLaunchTextures.GetLaunchWhenReadyIcon()
             };
             return command;
         }
@@ -289,7 +283,7 @@ namespace BetterShuttleLaunch.UI
             {
                 defaultLabel = "BSL_LaunchWhenReady".Translate(),
                 defaultDesc = "BSL_LaunchWhenReadyDesc".Translate(),
-                icon = BetterShuttleLaunchTextures.OrFallback(BetterShuttleLaunchTextures.CommandLaunchWhenReady, CompLaunchable.LaunchCommandTex)
+                icon = BetterShuttleLaunchTextures.GetLaunchWhenReadyIcon()
             };
             command.Disable(disabledReason);
             return command;
