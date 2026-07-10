@@ -2,13 +2,13 @@
 <ModMetaData>
   <name>Better Shuttle Launch</name>
   <author>bakacandy</author>
-  <packageId>bakacandy.BetterShuttleLaunch</packageId>
+  <packageId>bakacandy.bettershuttlelaunch</packageId>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
   <modDependencies>
     <li>
-      <packageId>Ludeon.RimWorld.Odyssey</packageId>
+      <packageId>ludeon.rimworld.odyssey</packageId>
       <displayName>Odyssey</displayName>
     </li>
     <li>
@@ -19,9 +19,9 @@
     </li>
   </modDependencies>
   <loadAfter>
-    <li>Ludeon.RimWorld.Odyssey</li>
+    <li>ludeon.rimworld.odyssey</li>
     <li>brrainz.harmony</li>
-    <li>kearril.ChooseWhereToLand</li>
+    <li>kearril.choosewheretoland</li>
   </loadAfter>
   <description>Adds world-map passenger shuttle launch, return-home shortcuts, and scheduled launch when ready for RimWorld 1.6 Odyssey.</description>
 </ModMetaData>

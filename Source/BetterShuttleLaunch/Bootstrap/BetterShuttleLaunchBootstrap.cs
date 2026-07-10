@@ -8,7 +8,7 @@ namespace BetterShuttleLaunch.Bootstrap
     {
         static BetterShuttleLaunchBootstrap()
         {
-            new Harmony("bakacandy.BetterShuttleLaunch").PatchAll();
+            new Harmony("bakacandy.bettershuttlelaunch").PatchAll();
         }
     }
 }
